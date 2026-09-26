@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
->
+ 
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.05</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.06</span>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
 
     <main class="max-w-xl mx-auto w-full p-6 my-auto">
         <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
+            <h2 id="sender-main-title" class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
             <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
 
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
@@ -42,20 +42,22 @@
 
             <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
-                <div class="flex gap-2">
+                <div class="flex gap-2 mb-4">
                     <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
-                    <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">Kopieer</button>
+                    <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0 cursor-pointer">Kopieer</button>
                 </div>
+                <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Annuleren / Opnieuw</button>
             </div>
 
             <div id="progress-container" class="hidden mt-6 text-left">
                 <div class="flex justify-between text-sm mb-1">
-                    <span id="progress-text" class="text-slate-400">Voorbereiden...</span>
+                    <span id="progress-text" class="text-slate-400">Bestanden klaarmaken voor verzenden...</span>
                     <span id="progress-percent" class="font-medium text-orange-400">0%</span>
                 </div>
-                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800 mb-4">
                     <div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
                 </div>
+                <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Annuleren</button>
             </div>
         </div>
 
@@ -80,6 +82,17 @@
         </div>
     </main>
 
+    <div id="cancel-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-100 mb-2">Weet je zeker?</h3>
+            <p class="text-sm text-slate-400 mb-6">Wil je het huidige proces afbreken en terugkeren naar het begin?</p>
+            <div class="flex gap-3">
+                <button onclick="executeCancel(false)" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-medium transition cursor-pointer">Nee</button>
+                <button onclick="executeCancel(true)" class="w-1/2 bg-orange-600 hover:bg-orange-500 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Ja</button>
+            </div>
+        </div>
+    </div>
+
     <div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-left shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
@@ -101,7 +114,7 @@
                         <li<strong class="text-slate-300">Selecteer</strong> sleep je bestanden in het vak of klik om ze te kiezen.</li>
                         <li<strong class="text-slate-300">Genereer</strong> Klik op 'Start Zippen & Genereer Deellink'.</li>
                         <li<strong class="text-slate-300">Deel</strong> Stuur de gegenereerde unieke link naar de ontvanger.</li>
-                        <li class="text-orange-400 font-medium"<BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
+                        <li class="text-orange-400 font-medium">BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
                     </ol>
                 </div>
             </div>
@@ -119,6 +132,31 @@
 
         function toggleInfoModal() {
             document.getElementById('info-modal').classList.toggle('hidden');
+        }
+
+        function confirmCancel() {
+            document.getElementById('cancel-modal').classList.remove('hidden');
+        }
+
+        function executeCancel(yes) {
+            document.getElementById('cancel-modal').classList.add('hidden');
+            if (yes) {
+                // Reset alles terug naar beginsituatie
+                if (activeConnection) {
+                    try { activeConnection.close(); } catch(e) {}
+                    activeConnection = null;
+                }
+                selectedFiles = [];
+                fileToSend = null;
+                document.getElementById('file-input').value = '';
+                document.getElementById('file-info').classList.add('hidden');
+                document.getElementById('share-section').classList.add('hidden');
+                document.getElementById('progress-container').classList.add('hidden');
+                document.getElementById('drop-zone').classList.remove('hidden');
+                document.getElementById('sender-subtitle').classList.remove('hidden');
+                document.getElementById('sender-main-title').textContent = "Bestanden Verzenden";
+                document.getElementById('sender-subtitle').textContent = "Selecteer je bestanden om te beginnen.";
+            }
         }
 
         function initPeer() {
@@ -143,7 +181,7 @@
             for (let i = 0; i < selectedFiles.length; i++) {
                 const li = document.createElement('li');
                 li.className = "flex justify-between truncate";
-                li.innerHTML = `<span class="truncate mr-2">\({selectedFiles[i].name}</span><span class="text-slate-500 shrink-0">\){Math.round(selectedFiles[i].size / 1024)} KB</span>`;
+                li.innerHTML = `<span class="truncate mr-2">\({selectedFiles[i].name}><span class="text-slate-500 shrink-0">\){Math.round(selectedFiles[i].size / 1024)} KB>`;
                 fileListUl.appendChild(li);
             }
 
@@ -167,16 +205,17 @@
 
             if (selectedFiles.length === 1) {
                 fileToSend = selectedFiles[0];
-                progressText.textContent = "Bestand gereedmaken...";
+                progressText.textContent = "Bestand klaarmaken voor verzenden...";
                 progressPercent.textContent = "100%";
                 progressBar.style.width = "100%";
                 setTimeout(() => {
                     document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('sender-main-title').textContent = "Bestanden klaar om te verzenden";
                     document.getElementById('share-section').classList.remove('hidden');
                     document.getElementById('share-link').value = window.location.origin + window.location.pathname + '?to=' + peer.id;
                 }, 500);
             } else {
-                progressText.textContent = "ZIP aanmaken... (0%)";
+                progressText.textContent = "Bestanden klaarmaken voor verzenden... (0%)";
                 progressPercent.textContent = "0%";
                 progressBar.style.width = "0%";
 
@@ -193,14 +232,15 @@
                     const percent = Math.round(metadata.percent);
                     progressPercent.textContent = percent + '%';
                     progressBar.style.width = percent + '%';
-                    progressText.textContent = `ZIP aanmaken... (${percent}%)`;
+                    progressText.textContent = `Bestanden klaarmaken voor verzenden... (${percent}%)`;
                 });
 
                 fileToSend = new File([content], "Henk_Selectie.zip", { type: "application/zip" });
-                progressText.textContent = "ZIP archief succesvol aangemaakt!";
+                progressText.textContent = "Bestanden klaar voor verzenden!";
                 
                 setTimeout(() => {
                     document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('sender-main-title').textContent = "Bestanden klaar om te verzenden";
                     document.getElementById('share-section').classList.remove('hidden');
                     document.getElementById('share-link').value = window.location.origin + window.location.pathname + '?to=' + peer.id;
                 }, 800);
@@ -226,6 +266,7 @@
 
         function sendChunks(conn, startOffset) {
             let offset = startOffset;
+            document.getElementById('share-section').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
             const reader = new FileReader();
             
