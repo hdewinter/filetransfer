@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Henk’s File Transfer Applicatie</title>
+    <title>Henk's File Transfer Applicatie</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -16,7 +16,7 @@
             <div class="flex items-center gap-3">
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
+                    <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700">i</button>
                     <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.1.01.01</span>
                 </div>
             </div>
@@ -28,7 +28,8 @@
             <h2 id="sender-main-title" class="text-2xl font-bold mb-2"><strong>Bestanden Verzenden</strong></h2>
             <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
 
-            <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
+            <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950 space-y-2">
+                <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                 <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
                 <input type="file" id="file-input" multiple class="hidden">
             </label>
@@ -49,7 +50,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <button type="button" onclick="document.getElementById('file-input').click()" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-medium transition cursor-pointer">
+                    <button type="button" onclick="document.getElementById('file-input').click()" class="mt-2 w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-lg text-xs font-medium transition">
                         + Bestand(en) toevoegen
                     </button>
                 </div>
@@ -64,7 +65,9 @@
                     <textarea id="sender-message" rows="2" placeholder="Typ hier wat er in het bestand zit..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-orange-500 resize-none"></textarea>
                 </div>
                 
-                <button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Start Zippen & Genereer Deellink</button>
+                <button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20">
+                    Bestanden voorbereiden
+                </button>
             </div>
 
             <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
@@ -106,14 +109,14 @@
             </div>
 
             <div id="receiver-start-container" class="hidden mt-6">
-                <button id="start-download-btn" onclick="startReceiverDownload()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">
+                <button id="start-download-btn" onclick="startReceiverDownload()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20">
                     Start downloaden
                 </button>
             </div>
 
             <div id="download-ready" class="hidden">
                 <p class="font-medium text-emerald-400 mb-4 text-sm">✔ Bestand succesvol ontvangen!</p>
-                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand Downloaden</a>
+                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand downloaden</a>
             </div>
 
             <div id="receiver-progress-container" class="hidden mt-6 text-left">
@@ -156,10 +159,10 @@
             <div class="space-y-4 text-sm text-slate-300">
                 <div>
                     <h4 class="font-bold text-slate-200 mb-1"><strong>Wat is het?</strong></h4>
-                    <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.</p>
+                    <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger verzonden.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.0.01.10</strong></h4>
+                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.1.01.01</strong></h4>
                     <p class="text-slate-400">Volledige controle over filenamen, ingebouwde optie om een tekstbericht mee te sturen, en verbeterde handmatige controle over pauzeren en stoppen.</p>
                 </div>
             </div>
@@ -300,7 +303,6 @@
             const newlySelected = Array.from(e.target.files || []);
             if (newlySelected.length === 0) return;
 
-            // Add files instead of replacing the existing selection.
             selectedFiles.push(...newlySelected);
             fileInput.value = '';
             renderFileList();
@@ -458,7 +460,6 @@
             function readNextChunk() {
                 if (!activeConnection || !activeConnection.open) return;
 
-                // Avoid filling the PeerJS/WebRTC send buffer too aggressively.
                 const bufferedAmount = activeConnection.dataChannel?.bufferedAmount ?? 0;
                 if (bufferedAmount > chunkSize * 8) {
                     setTimeout(readNextChunk, 50);
@@ -498,8 +499,6 @@
                             ? "Klaar om verder te gaan."
                             : "Klaar om te downloaden.";
 
-                    // Do not start the transfer automatically.
-                    // The receiver must explicitly press Start downloaden.
                     if (incomingFile.name) {
                         document.getElementById('receiver-start-container').classList.remove('hidden');
                     }
@@ -537,7 +536,6 @@
                                 ? "Klaar om verder te gaan."
                                 : "Klaar om te downloaden.";
                     } else if (packet.type === 'file-chunk' && !isPaused) {
-                        // Ignore duplicate/out-of-order chunks after a reconnect.
                         if (typeof packet.offset !== 'number' || packet.offset !== incomingFile.receivedSize) {
                             return;
                         }
@@ -588,6 +586,12 @@
                             document.getElementById('receiver-progress-container').classList.add('hidden');
                             document.getElementById('receiver-start-container').classList.add('hidden');
                             document.getElementById('pause-resume-btn').disabled = true;
+                        } else {
+                            // REQUEST THE NEXT CHUNK!
+                            receiverConnection.send({
+                                type: 'request-chunk',
+                                offset: incomingFile.receivedSize
+                            });
                         }
                     }
                 });
