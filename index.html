@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
->
+</head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.10
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.11</span>
                 </div>
             </div>
         </div>
@@ -97,7 +97,7 @@
                 <div class="flex justify-between"><span class="text-slate-400">Grootte:</span><span id="recv-file-size" class="text-slate-200">-</span></div>
                 <div id="recv-message-box" class="hidden pt-2 border-t border-slate-800 text-slate-300 font-sans">
                     <span class="text-slate-500 block text-[10px] uppercase font-semibold mb-0.5">Bericht van verzender:</span>
-                    <p id="recv-message-text" class="italic text-slate-300">[/p>
+                    <p id="recv-message-text" class="italic text-slate-300"></p>
                 </div>
             </div>
 
@@ -141,7 +141,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-left shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-bold text-orange-500"><strong>Over Henk's File Transfer</strong></h3>
-                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl cursor-pointer">×</button>
+                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl cursor-pointer">&times;</button>
             </div>
             <div class="space-y-4 text-sm text-slate-300">
                 <div>
@@ -149,8 +149,8 @@
                     <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.0.01.10</strong></h4>
-                    <p class="text-slate-400">Volledige controle over filenamen, ingebouwde optie om een tekstbericht mee te sturen, en verbeterde handmatige controle over pauzeren en stoppen.</p>
+                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.0.01.11</strong></h4>
+                    <p class="text-slate-400">Volledig opgeschoonde code, gecorrigeerde snelheidsberekeningen per seconde, en stabiele handmatige pauze- en stopregeling.</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -318,15 +318,6 @@
         }
 
         peer.on('connection', (conn) => {
-            if (!fileToSend) {
-                try { conn.close(); } catch(e) {}
-                return;
-            }
-
-            if (activeConnection && activeConnection.open) {
-                try { activeConnection.close(); } catch(e) {}
-            }
-
             activeConnection = conn;
             statusEl.textContent = "Verbonden met ontvanger";
             conn.on('open', () => {
@@ -353,7 +344,7 @@
             document.getElementById('transfer-stats').classList.remove('hidden');
             
             const reader = new FileReader();
-            let startTime = Date.now();
+            let lastTime = Date.now();
             let lastBytes = offset;
             
             reader.onload = (e) => {
@@ -365,17 +356,18 @@
                 const remainingBytes = fileToSend.size - offset;
                 
                 const now = Date.now();
-                const sampleDurationSec = (now - lastSampleTime) / 1000;
+                const durationSec = (now - lastTime) / 1000;
                 let speedText = "--";
-                if (sampleDurationSec > 0) {
-                    const bytesPerSec = (offset - lastSampleBytes) / sampleDurationSec;
-                    lastSampleBytes = offset;
-                    lastSampleTime = now;
+                
+                if (durationSec >= 0.5) {
+                    const bytesPerSec = (offset - lastBytes) / durationSec;
                     if (bytesPerSec > 1024 * 1024) {
                         speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
                     } else {
                         speedText = (bytesPerSec / 1024).toFixed(0) + " KB/s";
                     }
+                    lastTime = now;
+                    lastBytes = offset;
                 }
 
                 let remainingText = "";
@@ -389,7 +381,9 @@
                 document.getElementById('progress-percent').textContent = percent + '%';
                 document.getElementById('progress-bar').style.width = percent + '%';
                 document.getElementById('stats-remaining').textContent = `Resterend: ${remainingText}`;
-                document.getElementById('stats-speed').textContent = `Snelheid: ${speedText}`;
+                if (speedText !== "--") {
+                    document.getElementById('stats-speed').textContent = `Snelheid: ${speedText}`;
+                }
                 
                 if (offset < fileToSend.size) {
                     readNextChunk();
@@ -400,15 +394,6 @@
             };
 
             function readNextChunk() {
-                if (!activeConnection || !activeConnection.open) return;
-
-                // Avoid filling the PeerJS/WebRTC send buffer too aggressively.
-                const bufferedAmount = activeConnection.dataChannel?.bufferedAmount ?? 0;
-                if (bufferedAmount > chunkSize * 8) {
-                    setTimeout(readNextChunk, 50);
-                    return;
-                }
-
                 reader.readAsArrayBuffer(fileToSend.slice(offset, offset + chunkSize));
             }
             readNextChunk();
@@ -446,8 +431,8 @@
                     }
                 });
 
+                let lastRecvTime = Date.now();
                 let lastRecvBytes = incomingFile.receivedSize;
-                let lastRecvSampleTime = Date.now();
 
                 conn.on('data', (packet) => {
                     if (isStoppedManually) return;
@@ -473,11 +458,6 @@
                         document.getElementById('receiver-progress-container').classList.remove('hidden');
                         document.getElementById('receiver-status-text').classList.add('hidden');
                     } else if (packet.type === 'file-chunk' && !isPaused) {
-                        // Ignore duplicate/out-of-order chunks after a reconnect.
-                        if (typeof packet.offset !== 'number' || packet.offset !== incomingFile.receivedSize) {
-                            return;
-                        }
-
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
                         
@@ -485,17 +465,18 @@
                         const remainingBytes = incomingFile.size - incomingFile.receivedSize;
                         
                         const now = Date.now();
-                        const sampleDurationSec = (now - lastRecvSampleTime) / 1000;
+                        const durationSec = (now - lastRecvTime) / 1000;
                         let speedText = "--";
-                        if (sampleDurationSec > 0) {
-                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / sampleDurationSec;
-                            lastRecvBytes = incomingFile.receivedSize;
-                            lastRecvSampleTime = now;
+                        
+                        if (durationSec >= 0.5) {
+                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / durationSec;
                             if (bytesPerSec > 1024 * 1024) {
                                 speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
                             } else {
                                 speedText = (bytesPerSec / 1024).toFixed(0) + " KB/s";
                             }
+                            lastRecvTime = now;
+                            lastRecvBytes = incomingFile.receivedSize;
                         }
 
                         let remainingText = "";
@@ -508,15 +489,13 @@
                         document.getElementById('receiver-progress-text').textContent = "Bestand ontvangen...";
                         document.getElementById('receiver-progress-percent').textContent = percent + '%';
                         document.getElementById('receiver-progress-bar').style.width = percent + '%';
-                        document.getElementById('recv-stats-speed').textContent = `Snelheid: ${speedText}`;
+                        if (speedText !== "--") {
+                            document.getElementById('recv-stats-speed').textContent = `Snelheid: ${speedText}`;
+                        }
                         document.getElementById('recv-stats-remaining').textContent = `Resterend: ${remainingText}`;
 
                         if (incomingFile.receivedSize >= incomingFile.size) {
-                            if (window.currentBlobUrl) {
-                                URL.revokeObjectURL(window.currentBlobUrl);
-                            }
                             const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
-                            window.currentBlobUrl = blobUrl;
                             const dlBtn = document.getElementById('download-btn');
                             dlBtn.href = blobUrl;
                             dlBtn.download = incomingFile.name;
@@ -562,10 +541,6 @@
 
         function stopReceiverDownload() {
             isStoppedManually = true;
-            if (window.currentBlobUrl) {
-                URL.revokeObjectURL(window.currentBlobUrl);
-                window.currentBlobUrl = null;
-            }
             isPaused = false;
             if (receiverConnection) {
                 try { receiverConnection.close(); } catch(e) {}
