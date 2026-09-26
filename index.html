@@ -1,250 +1,220 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Henk’s File Transfer Applicatie</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
-
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
-            <div class="flex items-center gap-3">
-                <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
-                <!-- Info Knop (i) -->
-                <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-            </div>
+<header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+        <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
+        <div class="flex items-center gap-3">
+            <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
+            <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- Main Content -->
-    <main class="max-w-xl mx-auto w-full p-6 my-auto">
-        
-        <!-- Upload / Stuur Sectie -->
-        <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
-            <p class="text-slate-400 text-sm mb-6">Sleep meerdere bestanden of foto's hierheen, of selecteer ze tegelijk.</p>
+<main class="max-w-xl mx-auto w-full p-6 my-auto">
+    
+    <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
+        <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
+        <p class="text-slate-400 text-sm mb-6">Sleep meerdere bestanden of foto's hierheen, of selecteer ze tegelijk.</p>
 
-            <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
-                <svg class="w-12 h-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
-                <input type="file" id="file-input" multiple class="hidden">
-            </label>
+        <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
+            <svg class="w-12 h-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
+            <input type="file" id="file-input" multiple class="hidden">
+        </label>
 
-            <!-- Geselecteerde bestanden & link weergave -->
-            <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Geselecteerde bestanden</p>
-                <p id="file-name" class="font-medium text-slate-200 truncate mb-4"></p>
+        <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Geselecteerde bestanden</p>
+            <p id="file-name" class="font-medium text-slate-200 truncate mb-4"></p>
 
-                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
-                <div class="flex gap-2">
-                    <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
-                    <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">Kopieer</button>
-                </div>
-            </div>
-
-            <!-- Voortgang -->
-            <div id="progress-container" class="hidden mt-6 text-left">
-                <div class="flex justify-between text-sm mb-1">
-                    <span id="progress-text" class="text-slate-400">Voorbereiden...</span>
-                    <span id="progress-percent" class="font-medium text-orange-400">0%</span>
-                </div>
-                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
-                    <div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
-                </div>
+            <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
+            <div class="flex gap-2">
+                <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
+                <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">Kopieer</button>
             </div>
         </div>
 
-        <!-- Ontvanger Sectie -->
-        <div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold mb-2">Bestanden Ontvangen</h2>
-            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...</p>
-
-            <div id="download-ready" class="hidden">
-                <p id="incoming-file-name" class="font-medium text-slate-200 mb-4"></p>
-                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand(en) Downloaden</a>
+        <div id="progress-container" class="hidden mt-6 text-left">
+            <div class="flex justify-between text-sm mb-1">
+                <span id="progress-text" class="text-slate-400">Voorbereiden...</span>
+                <span id="progress-percent" class="font-medium text-orange-400">0%</span>
             </div>
-
-            <div id="receiver-progress-container" class="hidden mt-6 text-left">
-                <div class="flex justify-between text-sm mb-1">
-                    <span id="receiver-progress-text" class="text-slate-400">Ontvangen...</span>
-                    <span id="receiver-progress-percent" class="font-medium text-orange-400">0%</span>
-                </div>
-                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
-                    <div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
-                </div>
+            <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                <div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
             </div>
-        </div>
-
-    </main>
-
-    <!-- Informatie Modal (Popup) -->
-    <div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-orange-500">Hoe werkt Henk's File Transfer?</h3>
-                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl">&times;</button>
-            </div>
-            <div class="space-y-3 text-sm text-slate-300">
-                <p><strong>1. Geen centrale opslag:</strong> Je bestanden worden nooit op een externe cloudserver geplaatst. Alles gaat rechtstreeks van apparaat naar apparaat (Peer-to-Peer).</p>
-                <p><strong>2. Meerdere bestanden:</strong> Selecteer je meerdere foto's of bestanden tegelijk? Dan maakt de app er automatisch een handig ZIP-archief van.</p>
-                <p><strong>3. Deel de link:</strong> Zodra je jouw bestand selecteert, krijg je een unieke link. Kopieer deze link en stuur hem naar de ontvanger.</p>
-                <p><strong>4. Houd de tab open:</strong> Omdat de verzending direct vanaf jouw apparaat loopt, moet de verzender de pagina open en actief houden tot de overdracht klaar is!</p>
-            </div>
-            <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center py-6 text-xs text-slate-600 border-t border-slate-900">
-        Henk's File Transfer • Direct P2P Browser-naar-Browser encryptie
-    </footer>
+    <div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
+        <h2 class="text-2xl font-bold mb-2">Bestanden Ontvangen</h2>
+        <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...</p>
 
-    <!-- Scripting -->
-    <script>
-        let peer;
-        let fileToSend = null;
-        const statusEl = document.getElementById('connection-status');
+        <div id="download-ready" class="hidden">
+            <p id="incoming-file-name" class="font-medium text-slate-200 mb-4"></p>
+            <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand(en) Downloaden</a>
+        </div>
 
-        function toggleInfoModal() {
-            const modal = document.getElementById('info-modal');
-            modal.classList.toggle('hidden');
-        }
+        <div id="receiver-progress-container" class="hidden mt-6 text-left">
+            <div class="flex justify-between text-sm mb-1">
+                <span id="receiver-progress-text" class="text-slate-400">Ontvangen...</span>
+                <span id="receiver-progress-percent" class="font-medium text-orange-400">0%</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                <div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
+            </div>
+        </div>
+    </div>
 
-        function initPeer() {
-            peer = new Peer();
+</main>
 
-            peer.on('open', (id) => {
-                statusEl.textContent = "Klaar voor verbinding";
-                statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const targetPeerId = urlParams.get('to');
+<div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-orange-500">Hoe werkt Henk's File Transfer?</h3>
+            <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl">&times;</button>
+        </div>
+        <div class="space-y-3 text-sm text-slate-300">
+            <p><strong>1. Geen centrale opslag:</strong> Bestanden gaan rechtstreeks via P2P van apparaat naar apparaat.</p>
+            <p><strong>2. Slimme ZIP-functie:</strong> Meerdere geselecteerde bestanden worden automatisch ingepakt.</p>
+            <p><strong>3. Hervatbare chunks:</strong> Valt de verbinding even weg? De app onthoudt het exacte punt en gaat automatisch verder waar hij gebleven was.</p>
+            <p><strong>4. Tab openhouden:</strong> Laat de verzender de pagina openhouden totdat de overdracht voltooid is.</p>
+        </div>
+        <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
+    </div>
+</div>
 
-                if (targetPeerId) {
-                    setupReceiver(targetPeerId);
-                }
-            });
+<footer class="text-center py-6 text-xs text-slate-600 border-t border-slate-900">
+    Henk's File Transfer • Direct P2P Browser-naar-Browser encryptie
+</footer>
 
-            peer.on('error', (err) => {
-                statusEl.textContent = "Verbindingsfout";
-                statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
-                console.error(err);
-            });
-        }
+<script>
+    let peer;
+    let fileToSend = null;
+    const statusEl = document.getElementById('connection-status');
 
-        initPeer();
+    function toggleInfoModal() {
+        const modal = document.getElementById('info-modal');
+        modal.classList.toggle('hidden');
+    }
 
-        // --- VERZENDER LOGICA ---
-        const fileInput = document.getElementById('file-input');
-        fileInput.addEventListener('change', async (e) => {
-            const files = e.target.files;
-            if (files.length === 0) return;
+    function initPeer() {
+        peer = new Peer();
 
-            document.getElementById('progress-container').classList.remove('hidden');
-            document.getElementById('progress-text').textContent = "Bestanden verwerken...";
+        peer.on('open', (id) => {
+            statusEl.textContent = "Klaar voor verbinding";
+            statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetPeerId = urlParams.get('to');
 
-            if (files.length === 1) {
-                fileToSend = files[0];
-                document.getElementById('file-name').textContent = fileToSend.name;
-            } else {
-                const zip = new JSZip();
-                for (let i = 0; i < files.length; i++) {
-                    zip.file(files[i].name, files[i]);
-                }
-                
-                document.getElementById('progress-text').textContent = "ZIP-archief aanmaken...";
-                const content = await zip.generateAsync({ type: "blob" });
-                fileToSend = new File([content], "Henk_Selectie_" + new Date().toISOString().slice(0,10) + ".zip", { type: "application/zip" });
-                
-                document.getElementById('file-name').textContent = `${files.length} bestanden (ingepakt als ZIP)`;
+            if (targetPeerId) {
+                setupReceiver(targetPeerId);
             }
-
-            document.getElementById('file-info').classList.remove('hidden');
-            document.getElementById('progress-container').classList.add('hidden');
-
-            const shareUrl = `${window.location.origin}${window.location.pathname}?to=${peer.id}`;
-            document.getElementById('share-link').value = shareUrl;
         });
 
-        function copyLink() {
-            const copyText = document.getElementById('share-link');
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            alert('Link gekopieerd naar klembord!');
+        peer.on('error', (err) => {
+            statusEl.textContent = "Verbindingsfout";
+            statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+            console.error(err);
+        });
+    }
+
+    initPeer();
+
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('change', async (e) => {
+        const files = e.target.files;
+        if (files.length === 0) return;
+
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('progress-text').textContent = "Bestanden verwerken...";
+
+        if (files.length === 1) {
+            fileToSend = files[0];
+            document.getElementById('file-name').textContent = fileToSend.name;
+        } else {
+            const zip = new JSZip();
+            for (let i = 0; i < files.length; i++) {
+                zip.file(files[i].name, files[i]);
+            }
+            
+            document.getElementById('progress-text').textContent = "ZIP-archief aanmaken...";
+            const content = await zip.generateAsync({ type: "blob" });
+            fileToSend = new File([content], "Henk_Selectie_" + new Date().toISOString().slice(0,10) + ".zip", { type: "application/zip" });
+            
+            document.getElementById('file-name').textContent = `${files.length} bestanden (ingepakt als ZIP)`;
         }
 
-        peer.on('connection', (conn) => {
-            statusEl.textContent = "Verbonden met ontvanger";
-            document.getElementById('progress-container').classList.remove('hidden');
-            document.getElementById('progress-text').textContent = "Bezig met verzenden...";
+        document.getElementById('file-info').classList.remove('hidden');
+        document.getElementById('progress-container').classList.add('hidden');
 
-            conn.on('open', () => {
+        const shareUrl = `\({window.location.origin}\){window.location.pathname}?to=${peer.id}`;
+        document.getElementById('share-link').value = shareUrl;
+    });
+
+    function copyLink() {
+        const copyText = document.getElementById('share-link');
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        alert('Link gekopieerd naar klembord!');
+    }
+
+    peer.on('connection', (conn) => {
+        statusEl.textContent = "Verbonden met ontvanger";
+        document.getElementById('progress-container').classList.remove('hidden');
+        document.getElementById('progress-text').textContent = "Wachten op startsignaal...";
+
+        const chunkSize = 16384; 
+
+        conn.on('data', (packet) => {
+            if (packet.type === 'request-meta') {
                 conn.send({ type: 'file-meta', name: fileToSend.name, size: fileToSend.size, fileType: fileToSend.type });
-
-                const chunkSize = 16384;
-                const reader = new FileReader();
-                let offset = 0;
-
-                reader.onload = (e) => {
-                    conn.send({ type: 'file-chunk', data: e.target.result });
-                    offset += e.target.result.byteLength;
-
-                    const percent = Math.round((offset / fileToSend.size) * 100);
-                    document.getElementById('progress-percent').textContent = percent + '%';
-                    document.getElementById('progress-bar').style.width = percent + '%';
-
-                    if (offset < fileToSend.size) {
-                        readNextChunk();
-                    } else {
-                        document.getElementById('progress-text').textContent = "Verzenden voltooid!";
-                    }
-                };
-
-                function readNextChunk() {
+            } 
+            else if (packet.type === 'request-chunk') {
+                let offset = packet.offset;
+                if (offset < fileToSend.size) {
                     const slice = fileToSend.slice(offset, offset + chunkSize);
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        conn.send({ type: 'file-chunk', offset: offset, data: e.target.result });
+                        
+                        const percent = Math.round(((offset + e.target.result.byteLength) / fileToSend.size) * 100);
+                        document.getElementById('progress-percent').textContent = percent + '%';
+                        document.getElementById('progress-bar').style.width = percent + '%';
+                        document.getElementById('progress-text').textContent = percent >= 100 ? "Verzenden voltooid!" : "Bezig met verzenden...";
+                    };
+
                     reader.readAsArrayBuffer(slice);
                 }
-
-                readNextChunk();
-            });
+            }
         });
+    });
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const senderId = urlParams.get('to');
 
-        // --- ONTVANGER LOGICA ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const senderId = urlParams.get('to');
+    if (senderId) {
+        document.getElementById('sender-section').classList.add('hidden');
+        document.getElementById('receiver-section').classList.remove('hidden');
+    }
 
-        if (senderId) {
-            document.getElementById('sender-section').classList.add('hidden');
-            document.getElementById('receiver-section').classList.remove('hidden');
-        }
+    function setupReceiver(targetId) {
+        let conn = null;
+        let incomingFile = { name: '', size: 0, type: '', chunks: {}, receivedBytes: 0 };
+        let isConnected = false;
 
-        function setupReceiver(targetId) {
-            let timeoutTriggered = false;
-            
-            const connectionTimeout = setTimeout(() => {
-                if (!timeoutTriggered) {
-                    document.getElementById('receiver-status-text').innerHTML = "<span class='text-rose-400'>Kan geen verbinding maken. Staat de verzender nog wel met de app open op het andere scherm?</span>";
-                    statusEl.textContent = "Verbinding mislukt";
-                    statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
-                }
-            }, 8000);
-
-            const conn = peer.connect(targetId);
-            let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
-
+        function connectToSender() {
+            if (isConnected) return;
             statusEl.textContent = "Verbinden met verzender...";
+            document.getElementById('receiver-status-text').textContent = "Verbinding opbouwen...";
+
+            conn = peer.connect(targetId);
 
             conn.on('open', () => {
-                timeoutTriggered = true;
-                clearTimeout(connectionTimeout);
-                document.getElementById('receiver-status-text').textContent = "Verbonden! Wachten op bestand(en)...";
+                isConnected = true;
+                statusEl.textContent = "Verbonden";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                document.getElementById('receiver-status-text').textContent = "Verbonden! Gegevens ophalen...";
+                
+                conn.send({ type: 'request-meta' });
             });
 
             conn.on('data', (packet) => {
@@ -254,23 +224,27 @@
                     incomingFile.type = packet.fileType;
                     document.getElementById('receiver-progress-container').classList.remove('hidden');
                     document.getElementById('receiver-status-text').textContent = "Bezig met ontvangen...";
+                    
+                    requestNextChunk();
                 } 
                 else if (packet.type === 'file-chunk') {
-                    incomingFile.chunks.push(packet.data);
-                    incomingFile.receivedSize += packet.data.byteLength;
+                    if (!incomingFile.chunks[packet.offset]) {
+                        incomingFile.chunks[packet.offset] = packet.data;
+                        incomingFile.receivedBytes += packet.data.byteLength;
+                    }
 
-                    const percent = Math.round((incomingFile.receivedSize / incomingFile.size) * 100);
+                    const percent = Math.round((incomingFile.receivedBytes / incomingFile.size) * 100);
                     document.getElementById('receiver-progress-percent').textContent = percent + '%';
                     document.getElementById('receiver-progress-bar').style.width = percent + '%';
 
-                    if (incomingFile.receivedSize >= incomingFile.size) {
-                        timeoutTriggered = true;
-                        clearTimeout(connectionTimeout);
+                    if (incomingFile.receivedBytes >= incomingFile.size) {
                         document.getElementById('receiver-progress-text').textContent = "Ontvangen voltooid!";
                         statusEl.textContent = "Overdracht voltooid";
-                        statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
 
-                        const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
+                        const sortedKeys = Object.keys(incomingFile.chunks).map(Number).sort((a, b) => a - b);
+                        const orderedChunks = sortedKeys.map(k => incomingFile.chunks[k]);
+
+                        const blob = new Blob(orderedChunks, { type: incomingFile.type });
                         const blobUrl = URL.createObjectURL(blob);
                         
                         document.getElementById('incoming-file-name').textContent = incomingFile.name;
@@ -280,10 +254,31 @@
 
                         document.getElementById('receiver-status-text').classList.add('hidden');
                         document.getElementById('download-ready').classList.remove('hidden');
+                    } else {
+                        requestNextChunk();
                     }
                 }
             });
+
+            conn.on('close', () => {
+                isConnected = false;
+                statusEl.textContent = "Verbinding verbroken";
+                statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                document.getElementById('receiver-status-text').innerHTML = "<span class='text-amber-400'>Verbinding tijdelijk weg. Automatisch opnieuw verbinden vanaf punt " + incomingFile.receivedBytes + " bytes...</span>";
+                
+                setTimeout(connectToSender, 3000);
+            });
+
+            conn.on('error', (err) => {
+                console.error(err);
+            });
         }
-    </script>
-</body>
-</html>
+
+        function requestNextChunk() {
+            if (!conn || !isConnected) return;
+            conn.send({ type: 'request-chunk', offset: incomingFile.receivedBytes });
+        }
+
+        connectToSender();
+    }
+</script>
