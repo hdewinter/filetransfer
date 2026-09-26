@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.06</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.07</span>
                 </div>
             </div>
         </div>
@@ -54,10 +54,14 @@
                     <span id="progress-text" class="text-slate-400">Bestanden klaarmaken voor verzenden...</span>
                     <span id="progress-percent" class="font-medium text-orange-400">0%</span>
                 </div>
-                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800 mb-4">
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800 mb-2">
                     <div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
                 </div>
-                <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Annuleren</button>
+                <div id="transfer-stats" class="hidden flex justify-between text-xs text-slate-400 mb-4 font-mono">
+                    <span id="stats-remaining">Resterend: -- MB</span>
+                    <span id="stats-speed">Snelheid: -- MB/s</span>
+                </div>
+                <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer mt-2">Annuleren</button>
             </div>
         </div>
 
@@ -114,7 +118,7 @@
                         <li<strong class="text-slate-300">Selecteer</strong> sleep je bestanden in het vak of klik om ze te kiezen.</li>
                         <li<strong class="text-slate-300">Genereer</strong> Klik op 'Start Zippen & Genereer Deellink'.</li>
                         <li<strong class="text-slate-300">Deel</strong> Stuur de gegenereerde unieke link naar de ontvanger.</li>
-                        <li class="text-orange-400 font-medium">BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
+                        <li class="text-orange-400 font-medium">strong>BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
                     </ol>
                 </div>
             </div>
@@ -141,7 +145,6 @@
         function executeCancel(yes) {
             document.getElementById('cancel-modal').classList.add('hidden');
             if (yes) {
-                // Reset alles terug naar beginsituatie
                 if (activeConnection) {
                     try { activeConnection.close(); } catch(e) {}
                     activeConnection = null;
@@ -152,6 +155,7 @@
                 document.getElementById('file-info').classList.add('hidden');
                 document.getElementById('share-section').classList.add('hidden');
                 document.getElementById('progress-container').classList.add('hidden');
+                document.getElementById('transfer-stats').classList.add('hidden');
                 document.getElementById('drop-zone').classList.remove('hidden');
                 document.getElementById('sender-subtitle').classList.remove('hidden');
                 document.getElementById('sender-main-title').textContent = "Bestanden Verzenden";
@@ -181,7 +185,7 @@
             for (let i = 0; i < selectedFiles.length; i++) {
                 const li = document.createElement('li');
                 li.className = "flex justify-between truncate";
-                li.innerHTML = `<span class="truncate mr-2">\({selectedFiles[i].name}><span class="text-slate-500 shrink-0">\){Math.round(selectedFiles[i].size / 1024)} KB>`;
+                li.innerHTML = `${selectedFiles[i].name}${Math.round(selectedFiles[i].size / 1024)} KB`;
                 fileListUl.appendChild(li);
             }
 
@@ -193,7 +197,6 @@
         async function startZippingAndSharing() {
             if (selectedFiles.length === 0) return;
 
-            // Verberg de invoer en drop-zone zodra het zippen/starten begint
             document.getElementById('file-info').classList.add('hidden');
             document.getElementById('drop-zone').classList.add('hidden');
             document.getElementById('sender-subtitle').classList.add('hidden');
@@ -268,7 +271,11 @@
             let offset = startOffset;
             document.getElementById('share-section').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
+            document.getElementById('transfer-stats').classList.remove('hidden');
+            
             const reader = new FileReader();
+            let startTime = Date.now();
+            let lastBytes = offset;
             
             reader.onload = (e) => {
                 if (!activeConnection || !activeConnection.open) return;
@@ -276,14 +283,38 @@
                 offset += e.target.result.byteLength;
                 
                 const percent = Math.round((offset / fileToSend.size) * 100);
+                const remainingBytes = fileToSend.size - offset;
+                
+                const now = Date.now();
+                const durationSec = (now - startTime) / 1000;
+                let speedText = "--";
+                if (durationSec > 0) {
+                    const bytesPerSec = (offset - lastBytes) / durationSec;
+                    if (bytesPerSec > 1024 * 1024) {
+                        speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
+                    } else {
+                        speedText = (bytesPerSec / 1024).toFixed(0) + " KB/s";
+                    }
+                }
+
+                let remainingText = "";
+                if (remainingBytes > 1024 * 1024) {
+                    remainingText = (remainingBytes / (1024 * 1024)).toFixed(1) + " MB";
+                } else {
+                    remainingText = Math.round(remainingBytes / 1024) + " KB";
+                }
+
                 document.getElementById('progress-text').textContent = "Bestand verzenden naar ontvanger...";
                 document.getElementById('progress-percent').textContent = percent + '%';
                 document.getElementById('progress-bar').style.width = percent + '%';
+                document.getElementById('stats-remaining').textContent = `Resterend: \({remainingText} (\){Math.round(remainingBytes / 1024)} KB)`;
+                document.getElementById('stats-speed').textContent = `Snelheid: ${speedText}`;
                 
                 if (offset < fileToSend.size) {
                     readNextChunk();
                 } else {
                     document.getElementById('progress-text').textContent = "Verzending volledig voltooid!";
+                    document.getElementById('transfer-stats').classList.add('hidden');
                 }
             };
 
