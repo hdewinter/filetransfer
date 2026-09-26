@@ -125,7 +125,7 @@
             for (let i = 0; i < selectedFiles.length; i++) {
                 const li = document.createElement('li');
                 li.className = "flex justify-between truncate";
-                li.innerHTML = `${selectedFiles[i].name}${Math.round(selectedFiles[i].size / 1024)} KB`;
+                li.innerHTML = `<span class="truncate mr-2">\({selectedFiles[i].name}</span><span class="text-slate-500 shrink-0">\){Math.round(selectedFiles[i].size / 1024)} KB</span>`;
                 fileListUl.appendChild(li);
             }
 
