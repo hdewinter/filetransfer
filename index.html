@@ -8,13 +8,17 @@
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <!-- Header -->
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
-            <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
+            <div class="flex items-center gap-3">
+                <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
+                <!-- Info Knop (i) -->
+                <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
+            </div>
         </div>
     </header>
 
@@ -79,6 +83,23 @@
 
     </main>
 
+    <!-- Informatie Modal (Popup) -->
+    <div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-orange-500">Hoe werkt Henk's File Transfer?</h3>
+                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl">&times;</button>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <p><strong>1. Geen centrale opslag:</strong> Je bestanden worden nooit op een externe cloudserver geplaatst. Alles gaat rechtstreeks van apparaat naar apparaat (Peer-to-Peer).</p>
+                <p><strong>2. Meerdere bestanden:</strong> Selecteer je meerdere foto's of bestanden tegelijk? Dan maakt de app er automatisch een handig ZIP-archief van.</p>
+                <p><strong>3. Deel de link:</strong> Zodra je jouw bestand selecteert, krijg je een unieke link. Kopieer deze link en stuur hem naar de ontvanger.</p>
+                <p><strong>4. Houd de tab open:</strong> Omdat de verzending direct vanaf jouw apparaat loopt, moet de verzender de pagina open en actief houden tot de overdracht klaar is!</p>
+            </div>
+            <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="text-center py-6 text-xs text-slate-600 border-t border-slate-900">
         Henk's File Transfer • Direct P2P Browser-naar-Browser encryptie
@@ -89,6 +110,11 @@
         let peer;
         let fileToSend = null;
         const statusEl = document.getElementById('connection-status');
+
+        function toggleInfoModal() {
+            const modal = document.getElementById('info-modal');
+            modal.classList.toggle('hidden');
+        }
 
         function initPeer() {
             peer = new Peer();
@@ -202,7 +228,6 @@
         function setupReceiver(targetId) {
             let timeoutTriggered = false;
             
-            // Timeout als verbinding na 8 seconden niet lukt
             const connectionTimeout = setTimeout(() => {
                 if (!timeoutTriggered) {
                     document.getElementById('receiver-status-text').innerHTML = "<span class='text-rose-400'>Kan geen verbinding maken. Staat de verzender nog wel met de app open op het andere scherm?</span>";
