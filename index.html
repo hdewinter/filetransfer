@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
- 
+>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.10>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.10
                 </div>
             </div>
         </div>
@@ -26,22 +26,22 @@
     <main class="max-w-xl mx-auto w-full p-6 my-auto">
         <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
             <h2 id="sender-main-title" class="text-2xl font-bold mb-2"><strong>Bestanden Verzenden</strong></h2>
-            <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.>/p>
+            <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
 
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
-                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden>
+                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
                 <input type="file" id="file-input" multiple class="hidden">
             </label>
 
             <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
                 <div>
-                    <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Geselecteerde bestanden:>/p>
+                    <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Geselecteerde bestanden:</p>
                     <div class="border border-slate-800 rounded-lg overflow-hidden max-h-32 overflow-y-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
                                 <tr>
-                                    <th class="p-2 font-medium">Bestandsnaam>/th>
-                                    <th class="p-2 font-medium text-right w-24">Grootte>/th>
+                                    <th class="p-2 font-medium">Bestandsnaam</th>
+                                    <th class="p-2 font-medium text-right w-24">Grootte</th>
                                 </tr>
                             </thead>
                             <tbody id="file-list-tbody" class="divide-y divide-slate-900 text-slate-300">
@@ -64,7 +64,7 @@
             </div>
 
             <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
-                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger>/p>
+                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
                 <div class="flex gap-2 mb-4">
                     <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
                     <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0 cursor-pointer">Kopieer</button>
@@ -90,7 +90,7 @@
 
         <div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
             <h2 class="text-2xl font-bold mb-2"><strong>Bestanden Ontvangen</strong></h2>
-            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...>/p>
+            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...</p>
 
             <div id="receiver-meta-info" class="hidden mb-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
                 <div class="flex justify-between"><span class="text-slate-400">Bestand:</span><span id="recv-file-name" class="text-slate-200 font-semibold truncate max-w-[240px]">-</span></div>
@@ -102,7 +102,7 @@
             </div>
 
             <div id="download-ready" class="hidden">
-                <p class="font-medium text-emerald-400 mb-4 text-sm">✔ Bestand succesvol ontvangen!>/p>
+                <p class="font-medium text-emerald-400 mb-4 text-sm">✔ Bestand succesvol ontvangen!</p>
                 <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand Downloaden</a>
             </div>
 
@@ -129,7 +129,7 @@
     <div id="cancel-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
             <h3 class="text-lg font-bold text-slate-100 mb-2"><strong>Weet je zeker?</strong></h3>
-            <p class="text-sm text-slate-400 mb-6">Wil je het huidige proces afbreken en terugkeren naar het begin?>/p>
+            <p class="text-sm text-slate-400 mb-6">Wil je het huidige proces afbreken en terugkeren naar het begin?</p>
             <div class="flex gap-3">
                 <button onclick="executeCancel(false)" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-medium transition cursor-pointer">Nee</button>
                 <button onclick="executeCancel(true)" class="w-1/2 bg-orange-600 hover:bg-orange-500 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Ja</button>
@@ -146,11 +146,11 @@
             <div class="space-y-4 text-sm text-slate-300">
                 <div>
                     <h4 class="font-bold text-slate-200 mb-1"><strong>Wat is het?</strong></h4>
-                    <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.>/p>
+                    <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.</p>
                 </div>
                 <div>
                     <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.0.01.10</strong></h4>
-                    <p class="text-slate-400">Volledige controle over filenamen, ingebouwde optie om een tekstbericht mee te sturen, en verbeterde handmatige controle over pauzeren en stoppen.>/p>
+                    <p class="text-slate-400">Volledige controle over filenamen, ingebouwde optie om een tekstbericht mee te sturen, en verbeterde handmatige controle over pauzeren en stoppen.</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -318,6 +318,15 @@
         }
 
         peer.on('connection', (conn) => {
+            if (!fileToSend) {
+                try { conn.close(); } catch(e) {}
+                return;
+            }
+
+            if (activeConnection && activeConnection.open) {
+                try { activeConnection.close(); } catch(e) {}
+            }
+
             activeConnection = conn;
             statusEl.textContent = "Verbonden met ontvanger";
             conn.on('open', () => {
@@ -356,10 +365,12 @@
                 const remainingBytes = fileToSend.size - offset;
                 
                 const now = Date.now();
-                const durationSec = (now - startTime) / 1000;
+                const sampleDurationSec = (now - lastSampleTime) / 1000;
                 let speedText = "--";
-                if (durationSec > 0) {
-                    const bytesPerSec = (offset - lastBytes) / durationSec;
+                if (sampleDurationSec > 0) {
+                    const bytesPerSec = (offset - lastSampleBytes) / sampleDurationSec;
+                    lastSampleBytes = offset;
+                    lastSampleTime = now;
                     if (bytesPerSec > 1024 * 1024) {
                         speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
                     } else {
@@ -389,6 +400,15 @@
             };
 
             function readNextChunk() {
+                if (!activeConnection || !activeConnection.open) return;
+
+                // Avoid filling the PeerJS/WebRTC send buffer too aggressively.
+                const bufferedAmount = activeConnection.dataChannel?.bufferedAmount ?? 0;
+                if (bufferedAmount > chunkSize * 8) {
+                    setTimeout(readNextChunk, 50);
+                    return;
+                }
+
                 reader.readAsArrayBuffer(fileToSend.slice(offset, offset + chunkSize));
             }
             readNextChunk();
@@ -426,8 +446,8 @@
                     }
                 });
 
-                let lastRecvBytes = 0;
-                let recvStartTime = Date.now();
+                let lastRecvBytes = incomingFile.receivedSize;
+                let lastRecvSampleTime = Date.now();
 
                 conn.on('data', (packet) => {
                     if (isStoppedManually) return;
@@ -453,6 +473,11 @@
                         document.getElementById('receiver-progress-container').classList.remove('hidden');
                         document.getElementById('receiver-status-text').classList.add('hidden');
                     } else if (packet.type === 'file-chunk' && !isPaused) {
+                        // Ignore duplicate/out-of-order chunks after a reconnect.
+                        if (typeof packet.offset !== 'number' || packet.offset !== incomingFile.receivedSize) {
+                            return;
+                        }
+
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
                         
@@ -460,10 +485,12 @@
                         const remainingBytes = incomingFile.size - incomingFile.receivedSize;
                         
                         const now = Date.now();
-                        const durationSec = (now - recvStartTime) / 1000;
+                        const sampleDurationSec = (now - lastRecvSampleTime) / 1000;
                         let speedText = "--";
-                        if (durationSec > 0) {
-                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / durationSec;
+                        if (sampleDurationSec > 0) {
+                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / sampleDurationSec;
+                            lastRecvBytes = incomingFile.receivedSize;
+                            lastRecvSampleTime = now;
                             if (bytesPerSec > 1024 * 1024) {
                                 speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
                             } else {
@@ -485,7 +512,11 @@
                         document.getElementById('recv-stats-remaining').textContent = `Resterend: ${remainingText}`;
 
                         if (incomingFile.receivedSize >= incomingFile.size) {
+                            if (window.currentBlobUrl) {
+                                URL.revokeObjectURL(window.currentBlobUrl);
+                            }
                             const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
+                            window.currentBlobUrl = blobUrl;
                             const dlBtn = document.getElementById('download-btn');
                             dlBtn.href = blobUrl;
                             dlBtn.download = incomingFile.name;
@@ -531,6 +562,10 @@
 
         function stopReceiverDownload() {
             isStoppedManually = true;
+            if (window.currentBlobUrl) {
+                URL.revokeObjectURL(window.currentBlobUrl);
+                window.currentBlobUrl = null;
+            }
             isPaused = false;
             if (receiverConnection) {
                 try { receiverConnection.close(); } catch(e) {}
