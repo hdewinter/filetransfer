@@ -23,7 +23,7 @@
     <main class="max-w-xl mx-auto w-full p-6 my-auto">
         <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
             <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
-            <p class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
+            <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
 
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
                 <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
@@ -137,8 +137,12 @@
         async function startZippingAndSharing() {
             if (selectedFiles.length === 0) return;
 
+            // Verberg de invoer en drop-zone zodra het zippen/starten begint
             document.getElementById('file-info').classList.add('hidden');
+            document.getElementById('drop-zone').classList.add('hidden');
+            document.getElementById('sender-subtitle').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
+            
             const progressText = document.getElementById('progress-text');
             const progressPercent = document.getElementById('progress-percent');
             const progressBar = document.getElementById('progress-bar');
@@ -240,14 +244,24 @@
         function setupReceiver(targetId) {
             let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
             let isConnected = false;
+            let currentConn = null;
 
             function connectWithRetry() {
                 const conn = peer.connect(targetId);
+                currentConn = conn;
                 activeConnection = conn;
 
                 conn.on('open', () => {
                     isConnected = true;
                     statusEl.textContent = "Verbonden";
+                    statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    
+                    // Zodra verbonden en er is al gestart, herstel statusmelding indien nodig
+                    if (incomingFile.receivedSize > 0) {
+                        document.getElementById('receiver-status-text').textContent = "Verbinding hersteld, verdergaan...";
+                        setTimeout(() => document.getElementById('receiver-status-text').classList.add('hidden'), 1500);
+                    }
+
                     conn.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
                 });
 
@@ -258,6 +272,9 @@
                         incomingFile.type = packet.fileType;
                         document.getElementById('receiver-progress-container').classList.remove('hidden');
                     } else if (packet.type === 'file-chunk') {
+                        // Zodra de eerste data binnenkomt, verbergen we definitief de overbodige verbindings-tekst
+                        document.getElementById('receiver-status-text').classList.add('hidden');
+
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
                         
@@ -272,7 +289,6 @@
                             const dlBtn = document.getElementById('download-btn');
                             dlBtn.href = blobUrl;
                             dlBtn.download = incomingFile.name;
-                            document.getElementById('receiver-status-text').classList.add('hidden');
                             document.getElementById('download-ready').classList.remove('hidden');
                             document.getElementById('receiver-progress-container').classList.add('hidden');
                         }
@@ -280,7 +296,20 @@
                 });
 
                 conn.on('close', () => {
-                    if (!isConnected) setTimeout(connectWithRetry, 3000);
+                    isConnected = false;
+                    statusEl.textContent = "Verbinding verbroken";
+                    statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
+                    
+                    // Als de overdracht nog niet klaar is, waarschuw en probeer opnieuw
+                    if (incomingFile.receivedSize < incomingFile.size && incomingFile.size > 0) {
+                        document.getElementById('receiver-status-text').textContent = "Verbinding verbroken... Wachten tot verbinding herstelt...";
+                        document.getElementById('receiver-status-text').classList.remove('hidden');
+                    }
+                    setTimeout(connectWithRetry, 3000);
+                });
+
+                conn.on('error', (err) => {
+                    console.error('Peer verbinding fout:', err);
                 });
             }
             connectWithRetry();
