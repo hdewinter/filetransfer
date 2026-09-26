@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Henk's File Transfer Applicatie</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
+
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
@@ -16,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.2.01.03</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.2.01.04</span>
                 </div>
             </div>
         </div>
@@ -32,7 +33,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.13A5.5 5.5 0 0118.5 8H18a4 4 0 010 8H7zm5-8v6m0 0l-2-2m2 2l2-2"/>
                 </svg>
                 <span class="mt-4 text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
-                <input type="file" id="file-input" multiple class="hidden" />
+                <input type="file" id="file-input" multiple class="hidden">
             </label>
 
             <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-4">
@@ -57,7 +58,7 @@
 
                 <div>
                     <label class="block text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1" for="custom-filename">Naam voor bestand / ZIP:</label>
-                    <input type="text" id="custom-filename" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-orange-500" />
+                    <input type="text" id="custom-filename" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-orange-500">
                 </div>
 
                 <div>
@@ -73,7 +74,7 @@
             <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
                 <div class="flex gap-2 mb-4">
-                    <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none" />
+                    <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
                     <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0 cursor-pointer">Kopieer</button>
                 </div>
                 <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Annuleren / Opnieuw</button>
@@ -116,7 +117,10 @@
 
             <div id="download-ready" class="hidden">
                 <p class="font-medium text-emerald-400 mb-4 text-sm">✔ Bestand succesvol ontvangen!</p>
-                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand downloaden</a>
+                <div class="flex gap-2">
+                    <button id="download-btn" onclick="downloadFile()" class="flex-1 bg-orange-600 hover:bg-orange-500 text-white px-4 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">⬇ Bestand downloaden</button>
+                    <button id="open-location-btn" onclick="openFileLocation()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-xl font-medium transition shadow-lg shadow-blue-600/20 cursor-pointer">📁 Locatie openen</button>
+                </div>
             </div>
 
             <div id="receiver-progress-container" class="hidden mt-6 text-left">
@@ -162,8 +166,8 @@
                     <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar een andere browser gestuurd zonder dat ze via een server worden opgeslagen.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.2.01.03</strong></h4>
-                    <p class="text-slate-400">Verbeterde pauze/hervat-werking: de verbinding blijft open en wordt alleen als echt verbroken gemeld wanneer er geen echte connectie meer bestaat.</p>
+                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.2.01.04</strong></h4>
+                    <p class="text-slate-400">Na ontvangst van bestanden kun je nu kiezen tussen "Bestand downloaden" (direct downloaden) of "Bestand locatie openen" (openen in bestandsbrowser/verkenner).</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -562,9 +566,6 @@
                             if (window.currentBlobUrl) URL.revokeObjectURL(window.currentBlobUrl);
                             const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
                             window.currentBlobUrl = blobUrl;
-                            const dlBtn = document.getElementById('download-btn');
-                            dlBtn.href = blobUrl;
-                            dlBtn.download = incomingFile.name;
                             document.getElementById('download-ready').classList.remove('hidden');
                             document.getElementById('receiver-progress-container').classList.add('hidden');
                             document.getElementById('receiver-start-container').classList.add('hidden');
@@ -625,30 +626,31 @@
         }
 
         function togglePauseReceiver() {
-            isPaused = !isPaused;
             const btn = document.getElementById('pause-resume-btn');
 
             if (isPaused) {
-                btn.textContent = 'Hervatten';
-                btn.className = 'w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
-                document.getElementById('receiver-status-text').textContent = 'Download gepauzeerd.';
+                isPaused = false;
+                btn.textContent = 'Pauzeren';
+                btn.className = 'w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
+                document.getElementById('receiver-status-text').textContent = 'Download hervatten...';
                 document.getElementById('receiver-status-text').classList.remove('hidden');
-                document.getElementById('receiver-progress-container').classList.add('hidden');
+                document.getElementById('receiver-progress-container').classList.remove('hidden');
+
+                if (receiverConnection && receiverConnection.open && incomingFile.name && incomingFile.receivedSize < incomingFile.size) {
+                    receiverConnection.send({
+                        type: 'request-chunk',
+                        offset: incomingFile.receivedSize
+                    });
+                }
                 return;
             }
 
-            btn.textContent = 'Pauzeren';
-            btn.className = 'w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
-            document.getElementById('receiver-status-text').textContent = 'Download hervatten...';
+            isPaused = true;
+            btn.textContent = 'Hervatten';
+            btn.className = 'w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
+            document.getElementById('receiver-status-text').textContent = 'Download gepauzeerd.';
             document.getElementById('receiver-status-text').classList.remove('hidden');
             document.getElementById('receiver-progress-container').classList.remove('hidden');
-
-            if (receiverConnection && receiverConnection.open) {
-                receiverConnection.send({
-                    type: 'request-chunk',
-                    offset: incomingFile.receivedSize
-                });
-            }
         }
 
         function stopReceiverDownload() {
@@ -667,6 +669,46 @@
             const pauseBtn = document.getElementById('pause-resume-btn');
             pauseBtn.disabled = true;
             pauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        function downloadFile() {
+            if (!window.currentBlobUrl) return;
+            const dlBtn = document.createElement('a');
+            dlBtn.href = window.currentBlobUrl;
+            dlBtn.download = incomingFile.name;
+            document.body.appendChild(dlBtn);
+            dlBtn.click();
+            document.body.removeChild(dlBtn);
+        }
+
+        function openFileLocation() {
+            if (!window.currentBlobUrl) return;
+
+            const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
+
+            if ('showSaveFilePicker' in window) {
+                (async () => {
+                    try {
+                        const handle = await window.showSaveFilePicker({
+                            suggestedName: incomingFile.name,
+                            types: [{
+                                description: incomingFile.type || 'File',
+                                accept: { [incomingFile.type || 'application/octet-stream']: [''] }
+                            }]
+                        });
+                        const writable = await handle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        alert('Bestand opgeslagen! Je kunt het nu vinden op je computer.');
+                    } catch (e) {
+                        console.error('Fout bij opslaan:', e);
+                        downloadFile();
+                    }
+                })();
+            } else {
+                downloadFile();
+                alert('Bestand is gedownload naar je Downloads map. Open de verkenner/Finder om het te zien.');
+            }
         }
     </script>
 </body>
