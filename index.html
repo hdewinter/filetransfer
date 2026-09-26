@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
+>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
@@ -15,7 +15,10 @@
             <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
             <div class="flex items-center gap-3">
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
-                <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.05</span>
+                </div>
             </div>
         </div>
     </header>
@@ -78,14 +81,29 @@
     </main>
 
     <div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-left shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-orange-500">Hoe werkt Henk's File Transfer?</h3>
-                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl">×</button>
+                <h3 class="text-lg font-bold text-orange-500">Over Henk's File Transfer</h3>
+                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl cursor-pointer">×</button>
             </div>
-            <div class="space-y-3 text-sm text-slate-300">
-                <p><strong>1. Overzicht:</strong> Controleer je geselecteerde bestanden.</p>
-                <p><strong>2. Start:</strong> Pak automatisch in als ZIP en genereer deellink.</p>
+            <div class="space-y-4 text-sm text-slate-300">
+                <div>
+                    <h4 class="font-bold text-slate-200 mb-1">Wat is het?</h4>
+                    <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-200 mb-1">Wat doet het?</h4>
+                    <p class="text-slate-400">Het pakt geselecteerde bestanden automatisch in als een ZIP-archief (bij meerdere bestanden) en zet een beveiligde verbinding op zodat de ontvanger het bestand direct kan downloaden.</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-200 mb-1">Hoe moet je het gebruiken?</h4>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                        <li<strong class="text-slate-300">Selecteer</strong> sleep je bestanden in het vak of klik om ze te kiezen.</li>
+                        <li<strong class="text-slate-300">Genereer</strong> Klik op 'Start Zippen & Genereer Deellink'.</li>
+                        <li<strong class="text-slate-300">Deel</strong> Stuur de gegenereerde unieke link naar de ontvanger.</li>
+                        <li class="text-orange-400 font-medium"<BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
+                    </ol>
+                </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
         </div>
@@ -244,11 +262,9 @@
         function setupReceiver(targetId) {
             let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
             let isConnected = false;
-            let currentConn = null;
 
             function connectWithRetry() {
                 const conn = peer.connect(targetId);
-                currentConn = conn;
                 activeConnection = conn;
 
                 conn.on('open', () => {
@@ -256,7 +272,6 @@
                     statusEl.textContent = "Verbonden";
                     statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
                     
-                    // Zodra verbonden en er is al gestart, herstel statusmelding indien nodig
                     if (incomingFile.receivedSize > 0) {
                         document.getElementById('receiver-status-text').textContent = "Verbinding hersteld, verdergaan...";
                         setTimeout(() => document.getElementById('receiver-status-text').classList.add('hidden'), 1500);
@@ -272,7 +287,6 @@
                         incomingFile.type = packet.fileType;
                         document.getElementById('receiver-progress-container').classList.remove('hidden');
                     } else if (packet.type === 'file-chunk') {
-                        // Zodra de eerste data binnenkomt, verbergen we definitief de overbodige verbindings-tekst
                         document.getElementById('receiver-status-text').classList.add('hidden');
 
                         incomingFile.chunks.push(packet.data);
@@ -300,7 +314,6 @@
                     statusEl.textContent = "Verbinding verbroken";
                     statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
                     
-                    // Als de overdracht nog niet klaar is, waarschuw en probeer opnieuw
                     if (incomingFile.receivedSize < incomingFile.size && incomingFile.size > 0) {
                         document.getElementById('receiver-status-text').textContent = "Verbinding verbroken... Wachten tot verbinding herstelt...";
                         document.getElementById('receiver-status-text').classList.remove('hidden');
