@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
- 
+>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.07</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.0.01.09>
                 </div>
             </div>
         </div>
@@ -29,13 +29,25 @@
             <p id="sender-subtitle" class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.</p>
 
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
-                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
+                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden>
                 <input type="file" id="file-input" multiple class="hidden">
             </label>
 
             <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Geselecteerde bestanden:</p>
-                <ul id="file-list-ul" class="text-xs text-slate-300 space-y-1 mb-4 max-h-32 overflow-y-auto pr-2 border-b border-slate-800 pb-3"></ul>
+                
+                <div class="border border-slate-800 rounded-lg overflow-hidden mb-4 max-h-40 overflow-y-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900 text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-2.5 font-medium">Bestandsnaam</th>
+                                <th class="p-2.5 font-medium text-right w-28">Bestandsgrootte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="file-list-tbody" class="divide-y divide-slate-900 text-slate-300">
+                        </tbody>
+                    </table>
+                </div>
                 
                 <button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Start Zippen & Genereer Deellink</button>
             </div>
@@ -67,11 +79,16 @@
 
         <div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
             <h2 class="text-2xl font-bold mb-2">Bestanden Ontvangen</h2>
-            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...</p>
+            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...>/p>
+
+            <div id="receiver-meta-info" class="hidden mb-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-1">
+                <div class="flex justify-between"><span class="text-slate-400">Bestand:</span><span id="recv-file-name" class="text-slate-200 font-semibold truncate max-w-[240px]">-</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Grootte:</span><span id="recv-file-size" class="text-slate-200">-</span></div>
+            </div>
 
             <div id="download-ready" class="hidden">
-                <p id="incoming-file-name" class="font-medium text-slate-200 mb-4"></p>
-                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand(en) Downloaden</a>
+                <p class="font-medium text-emerald-400 mb-4 text-sm">✔ Bestand succesvol ontvangen!</p>
+                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand Downloaden</a>
             </div>
 
             <div id="receiver-progress-container" class="hidden mt-6 text-left">
@@ -79,8 +96,16 @@
                     <span id="receiver-progress-text" class="text-slate-400">Ontvangen...</span>
                     <span id="receiver-progress-percent" class="font-medium text-orange-400">0%</span>
                 </div>
-                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800 mb-2">
                     <div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-400 mb-4 font-mono">
+                    <span id="recv-stats-speed">Snelheid: -- MB/s</span>
+                    <span id="recv-stats-remaining">Resterend: -- MB</span>
+                </div>
+                <div class="flex gap-2">
+                    <button id="pause-resume-btn" onclick="togglePauseReceiver()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Pauzeren</button>
+                    <button onclick="stopReceiverDownload()" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Stoppen</button>
                 </div>
             </div>
         </div>
@@ -109,17 +134,8 @@
                     <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar de ontvanger gestuurd zonder dat ze op een externe server worden opgeslagen.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1">Wat doet het?</h4>
-                    <p class="text-slate-400">Het pakt geselecteerde bestanden automatisch in als een ZIP-archief (bij meerdere bestanden) en zet een beveiligde verbinding op zodat de ontvanger het bestand direct kan downloaden.</p>
-                </div>
-                <div>
-                    <h4 class="font-bold text-slate-200 mb-1">Hoe moet je het gebruiken?</h4>
-                    <ol class="list-decimal list-inside space-y-1 text-slate-400">
-                        <li<strong class="text-slate-300">Selecteer</strong> sleep je bestanden in het vak of klik om ze te kiezen.</li>
-                        <li<strong class="text-slate-300">Genereer</strong> Klik op 'Start Zippen & Genereer Deellink'.</li>
-                        <li<strong class="text-slate-300">Deel</strong> Stuur de gegenereerde unieke link naar de ontvanger.</li>
-                        <li class="text-orange-400 font-medium">strong>BELANGRIJK: Houd de pagina van de verzender open!</strong> Omdat de overdracht rechtstreeks via jouw browser loopt, stopt de download als je het tabblad sluit voordat de ontvanger klaar is.</li>
-                    </ol>
+                    <h4 class="font-bold text-slate-200 mb-1">Nieuw in v1.0.01.09</h4>
+                    <p class="text-slate-400">Inclusief gescheiden kolommen voor bestandsnaam en grootte, realtime voortgangsweergave en een handige pauze/hervat-functie voor de ontvanger bij grote bestanden.</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -131,8 +147,9 @@
         let selectedFiles = [];
         let fileToSend = null;
         let activeConnection = null;
+        let isPaused = false;
         const statusEl = document.getElementById('connection-status');
-        const chunkSize = 16384;
+        const chunkSize = 65536; // Vergroot naar 64KB voor snellere P2P-transfer
 
         function toggleInfoModal() {
             document.getElementById('info-modal').classList.toggle('hidden');
@@ -151,6 +168,7 @@
                 }
                 selectedFiles = [];
                 fileToSend = null;
+                isPaused = false;
                 document.getElementById('file-input').value = '';
                 document.getElementById('file-info').classList.add('hidden');
                 document.getElementById('share-section').classList.add('hidden');
@@ -180,13 +198,27 @@
             selectedFiles = e.target.files;
             if (selectedFiles.length === 0) return;
 
-            const fileListUl = document.getElementById('file-list-ul');
-            fileListUl.innerHTML = '';
+            const fileListTbody = document.getElementById('file-list-tbody');
+            fileListTbody.innerHTML = '';
             for (let i = 0; i < selectedFiles.length; i++) {
-                const li = document.createElement('li');
-                li.className = "flex justify-between truncate";
-                li.innerHTML = `${selectedFiles[i].name}${Math.round(selectedFiles[i].size / 1024)} KB`;
-                fileListUl.appendChild(li);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-900/50";
+                
+                const tdName = document.createElement('td');
+                tdName.className = "p-2.5 truncate max-w-[200px]";
+                tdName.textContent = selectedFiles[i].name;
+
+                const tdSize = document.createElement('td');
+                tdSize.className = "p-2.5 text-right font-mono text-slate-400";
+                let sizeStr = Math.round(selectedFiles[i].size / 1024) + " KB";
+                if (selectedFiles[i].size >= 1024 * 1024) {
+                    sizeStr = (selectedFiles[i].size / (1024 * 1024)).toFixed(1) + " MB";
+                }
+                tdSize.textContent = sizeStr;
+
+                tr.appendChild(tdName);
+                tr.appendChild(tdSize);
+                fileListTbody.appendChild(tr);
             }
 
             document.getElementById('file-info').classList.remove('hidden');
@@ -263,7 +295,9 @@
                 conn.send({ type: 'file-meta', name: fileToSend.name, size: fileToSend.size, fileType: fileToSend.type });
             });
             conn.on('data', (packet) => {
-                if (packet.type === 'request-chunk') sendChunks(conn, packet.offset);
+                if (packet.type === 'request-chunk') {
+                    sendChunks(conn, packet.offset);
+                }
             });
         });
 
@@ -307,7 +341,7 @@
                 document.getElementById('progress-text').textContent = "Bestand verzenden naar ontvanger...";
                 document.getElementById('progress-percent').textContent = percent + '%';
                 document.getElementById('progress-bar').style.width = percent + '%';
-                document.getElementById('stats-remaining').textContent = `Resterend: \({remainingText} (\){Math.round(remainingBytes / 1024)} KB)`;
+                document.getElementById('stats-remaining').textContent = `Resterend: ${remainingText}`;
                 document.getElementById('stats-speed').textContent = `Snelheid: ${speedText}`;
                 
                 if (offset < fileToSend.size) {
@@ -331,47 +365,81 @@
             document.getElementById('receiver-section').classList.remove('hidden');
         }
 
-        function setupReceiver(targetId) {
-            let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
-            let isConnected = false;
+        let receiverConnection = null;
+        let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
 
+        function setupReceiver(targetId) {
             function connectWithRetry() {
                 const conn = peer.connect(targetId);
+                receiverConnection = conn;
                 activeConnection = conn;
 
                 conn.on('open', () => {
-                    isConnected = true;
                     statusEl.textContent = "Verbonden";
                     statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
                     
-                    if (incomingFile.receivedSize > 0) {
+                    if (incomingFile.receivedSize > 0 && !isPaused) {
                         document.getElementById('receiver-status-text').textContent = "Verbinding hersteld, verdergaan...";
                         setTimeout(() => document.getElementById('receiver-status-text').classList.add('hidden'), 1500);
+                        conn.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
+                    } else if (!isPaused && incomingFile.receivedSize === 0) {
+                        conn.send({ type: 'request-chunk', offset: 0 });
                     }
-
-                    conn.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
                 });
+
+                let lastRecvBytes = 0;
+                let recvStartTime = Date.now();
 
                 conn.on('data', (packet) => {
                     if (packet.type === 'file-meta' && !incomingFile.name) {
                         incomingFile.name = packet.name;
                         incomingFile.size = packet.size;
                         incomingFile.type = packet.fileType;
+                        
+                        document.getElementById('recv-file-name').textContent = packet.name;
+                        let sizeStr = Math.round(packet.size / 1024) + " KB";
+                        if (packet.size >= 1024 * 1024) {
+                            sizeStr = (packet.size / (1024 * 1024)).toFixed(1) + " MB";
+                        }
+                        document.getElementById('recv-file-size').textContent = sizeStr;
+                        
+                        document.getElementById('receiver-meta-info').classList.remove('hidden');
                         document.getElementById('receiver-progress-container').classList.remove('hidden');
-                    } else if (packet.type === 'file-chunk') {
                         document.getElementById('receiver-status-text').classList.add('hidden');
-
+                    } else if (packet.type === 'file-chunk' && !isPaused) {
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
                         
                         const percent = Math.round((incomingFile.receivedSize / incomingFile.size) * 100);
+                        const remainingBytes = incomingFile.size - incomingFile.receivedSize;
+                        
+                        const now = Date.now();
+                        const durationSec = (now - recvStartTime) / 1000;
+                        let speedText = "--";
+                        if (durationSec > 0) {
+                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / durationSec;
+                            if (bytesPerSec > 1024 * 1024) {
+                                speedText = (bytesPerSec / (1024 * 1024)).toFixed(1) + " MB/s";
+                            } else {
+                                speedText = (bytesPerSec / 1024).toFixed(0) + " KB/s";
+                            }
+                        }
+
+                        let remainingText = "";
+                        if (remainingBytes > 1024 * 1024) {
+                            remainingText = (remainingBytes / (1024 * 1024)).toFixed(1) + " MB";
+                        } else {
+                            remainingText = Math.round(remainingBytes / 1024) + " KB";
+                        }
+
                         document.getElementById('receiver-progress-text').textContent = "Bestand ontvangen...";
                         document.getElementById('receiver-progress-percent').textContent = percent + '%';
                         document.getElementById('receiver-progress-bar').style.width = percent + '%';
+                        document.getElementById('recv-stats-speed').textContent = `Snelheid: ${speedText}`;
+                        document.getElementById('recv-stats-remaining').textContent = `Resterend: ${remainingText}`;
 
                         if (incomingFile.receivedSize >= incomingFile.size) {
                             const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
-                            document.getElementById('incoming-file-name').textContent = incomingFile.name + " (" + Math.round(incomingFile.size / 1024 / 1024 * 10) / 10 + " MB)";
                             const dlBtn = document.getElementById('download-btn');
                             dlBtn.href = blobUrl;
                             dlBtn.download = incomingFile.name;
@@ -382,22 +450,47 @@
                 });
 
                 conn.on('close', () => {
-                    isConnected = false;
                     statusEl.textContent = "Verbinding verbroken";
                     statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20";
                     
-                    if (incomingFile.receivedSize < incomingFile.size && incomingFile.size > 0) {
-                        document.getElementById('receiver-status-text').textContent = "Verbinding verbroken... Wachten tot verbinding herstelt...";
+                    if (incomingFile.receivedSize < incomingFile.size && incomingFile.size > 0 && !isPaused) {
+                        document.getElementById('receiver-status-text').textContent = "Verbinding verbroken... Opnieuw verbinden...";
                         document.getElementById('receiver-status-text').classList.remove('hidden');
+                        setTimeout(connectWithRetry, 3000);
                     }
-                    setTimeout(connectWithRetry, 3000);
-                });
-
-                conn.on('error', (err) => {
-                    console.error('Peer verbinding fout:', err);
                 });
             }
             connectWithRetry();
+        }
+
+        function togglePauseReceiver() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('pause-resume-btn');
+            if (isPaused) {
+                btn.textContent = "Hervatten";
+                btn.className = "w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer";
+                document.getElementById('receiver-status-text').textContent = "Download gepauzeerd.";
+                document.getElementById('receiver-status-text').classList.remove('hidden');
+                if (receiverConnection) {
+                    try { receiverConnection.close(); } catch(e) {}
+                }
+            } else {
+                btn.textContent = "Pauzeren";
+                btn.className = "w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer";
+                document.getElementById('receiver-status-text').textContent = "Download hervatten...";
+                setupReceiver(senderId);
+            }
+        }
+
+        function stopReceiverDownload() {
+            if (receiverConnection) {
+                try { receiverConnection.close(); } catch(e) {}
+            }
+            incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
+            document.getElementById('receiver-progress-container').classList.add('hidden');
+            document.getElementById('receiver-meta-info').classList.add('hidden');
+            document.getElementById('receiver-status-text').textContent = "Download geannuleerd.";
+            document.getElementById('receiver-status-text').classList.remove('hidden');
         }
     </script>
 </body>
