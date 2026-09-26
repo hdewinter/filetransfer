@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Henk’s File Transfer Applicatie</title>
-    <!-- Tailwind CSS voor modern uiterlijk -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- PeerJS voor eenvoudige WebRTC P2P verbindingen -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <!-- JSZip om meerdere bestanden automatisch in te pakken -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
@@ -17,7 +14,7 @@
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
-            <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Verbinding maken...</span>
+            <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
         </div>
     </header>
 
@@ -32,7 +29,6 @@
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
                 <svg class="w-12 h-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                 <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
-                <!-- Let op: 'multiple' toegevoegd zodat je meer kunt selecteren -->
                 <input type="file" id="file-input" multiple class="hidden">
             </label>
 
@@ -88,7 +84,7 @@
         Henk's File Transfer • Direct P2P Browser-naar-Browser encryptie
     </footer>
 
-    <!-- Scripting voor WebRTC & Multi-file inpakken -->
+    <!-- Scripting -->
     <script>
         let peer;
         let fileToSend = null;
@@ -128,11 +124,9 @@
             document.getElementById('progress-text').textContent = "Bestanden verwerken...";
 
             if (files.length === 1) {
-                // Slechts 1 bestand, direct gebruiken
                 fileToSend = files[0];
                 document.getElementById('file-name').textContent = fileToSend.name;
             } else {
-                // Meerdere bestanden: maak er automatisch een ZIP-archief van
                 const zip = new JSZip();
                 for (let i = 0; i < files.length; i++) {
                     zip.file(files[i].name, files[i]);
@@ -148,7 +142,6 @@
             document.getElementById('file-info').classList.remove('hidden');
             document.getElementById('progress-container').classList.add('hidden');
 
-            // Genereer de unieke link
             const shareUrl = `${window.location.origin}${window.location.pathname}?to=${peer.id}`;
             document.getElementById('share-link').value = shareUrl;
         });
@@ -160,7 +153,6 @@
             alert('Link gekopieerd naar klembord!');
         }
 
-        // Luister naar inkomende verbindingen
         peer.on('connection', (conn) => {
             statusEl.textContent = "Verbonden met ontvanger";
             document.getElementById('progress-container').classList.remove('hidden');
@@ -208,12 +200,25 @@
         }
 
         function setupReceiver(targetId) {
+            let timeoutTriggered = false;
+            
+            // Timeout als verbinding na 8 seconden niet lukt
+            const connectionTimeout = setTimeout(() => {
+                if (!timeoutTriggered) {
+                    document.getElementById('receiver-status-text').innerHTML = "<span class='text-rose-400'>Kan geen verbinding maken. Staat de verzender nog wel met de app open op het andere scherm?</span>";
+                    statusEl.textContent = "Verbinding mislukt";
+                    statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                }
+            }, 8000);
+
             const conn = peer.connect(targetId);
             let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
 
             statusEl.textContent = "Verbinden met verzender...";
 
             conn.on('open', () => {
+                timeoutTriggered = true;
+                clearTimeout(connectionTimeout);
                 document.getElementById('receiver-status-text').textContent = "Verbonden! Wachten op bestand(en)...";
             });
 
@@ -234,6 +239,8 @@
                     document.getElementById('receiver-progress-bar').style.width = percent + '%';
 
                     if (incomingFile.receivedSize >= incomingFile.size) {
+                        timeoutTriggered = true;
+                        clearTimeout(connectionTimeout);
                         document.getElementById('receiver-progress-text').textContent = "Ontvangen voltooid!";
                         statusEl.textContent = "Overdracht voltooid";
                         statusEl.className = "px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
