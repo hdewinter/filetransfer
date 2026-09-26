@@ -113,19 +113,44 @@
         fileInput.addEventListener('change', async (e) => {
             const files = e.target.files;
             if (files.length === 0) return;
+            
             document.getElementById('progress-container').classList.remove('hidden');
+            const progressText = document.getElementById('progress-text');
+            const progressPercent = document.getElementById('progress-percent');
+            const progressBar = document.getElementById('progress-bar');
+
             if (files.length === 1) {
                 fileToSend = files[0];
                 document.getElementById('file-name').textContent = fileToSend.name;
+                document.getElementById('progress-container').classList.add('hidden');
             } else {
+                progressText.textContent = "ZIP-archief aanmaken...";
+                progressPercent.textContent = "0%";
+                progressBar.style.width = "0%";
+
                 const zip = new JSZip();
-                for (let i = 0; i < files.length; i++) zip.file(files[i].name, files[i]);
-                const content = await zip.generateAsync({ type: "blob" });
+                for (let i = 0; i < files.length; i++) {
+                    zip.file(files[i].name, files[i]);
+                }
+
+                // Genereer ZIP met ingebouwde voortgangsmeting
+                const content = await zip.generateAsync({
+                    type: "blob",
+                    compression: "DEFLATE",
+                    compressionOptions: { level: 6 }
+                }, (metadata) => {
+                    const percent = Math.round(metadata.percent);
+                    progressPercent.textContent = percent + '%';
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = `ZIP aanmaken (${metadata.currentFile || 'bezig...'})`;
+                });
+
                 fileToSend = new File([content], "Henk_Selectie.zip", { type: "application/zip" });
-                document.getElementById('file-name').textContent = `${files.length} bestanden (ZIP)`;
+                document.getElementById('file-name').textContent = `\({files.length} bestanden samengevoegd tot ZIP (\){Math.round(fileToSend.size / 1024 / 1024 * 10) / 10} MB)`;
+                document.getElementById('progress-container').classList.add('hidden');
             }
+
             document.getElementById('file-info').classList.remove('hidden');
-            document.getElementById('progress-container').classList.add('hidden');
             document.getElementById('share-link').value = `\({window.location.origin}\){window.location.pathname}?to=${peer.id}`;
         });
 
@@ -148,16 +173,26 @@
 
         function sendChunks(conn, startOffset) {
             let offset = startOffset;
+            document.getElementById('progress-container').classList.remove('hidden');
             const reader = new FileReader();
+            
             reader.onload = (e) => {
                 if (!activeConnection || !activeConnection.open) return;
                 conn.send({ type: 'file-chunk', offset: offset, data: e.target.result });
                 offset += e.target.result.byteLength;
+                
                 const percent = Math.round((offset / fileToSend.size) * 100);
+                document.getElementById('progress-text').textContent = "Bestand verzenden...";
                 document.getElementById('progress-percent').textContent = percent + '%';
                 document.getElementById('progress-bar').style.width = percent + '%';
-                if (offset < fileToSend.size) readNextChunk();
+                
+                if (offset < fileToSend.size) {
+                    readNextChunk();
+                } else {
+                    document.getElementById('progress-text').textContent = "Verzending voltooid!";
+                }
             };
+
             function readNextChunk() {
                 reader.readAsArrayBuffer(fileToSend.slice(offset, offset + chunkSize));
             }
@@ -174,14 +209,17 @@
         function setupReceiver(targetId) {
             let incomingFile = { name: '', size: 0, type: '', chunks: [], receivedSize: 0 };
             let isConnected = false;
+
             function connectWithRetry() {
                 const conn = peer.connect(targetId);
                 activeConnection = conn;
+
                 conn.on('open', () => {
                     isConnected = true;
                     statusEl.textContent = "Verbonden";
                     conn.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
                 });
+
                 conn.on('data', (packet) => {
                     if (packet.type === 'file-meta' && !incomingFile.name) {
                         incomingFile.name = packet.name;
@@ -191,20 +229,25 @@
                     } else if (packet.type === 'file-chunk') {
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
+                        
                         const percent = Math.round((incomingFile.receivedSize / incomingFile.size) * 100);
+                        document.getElementById('receiver-progress-text').textContent = "Bestand ontvangen...";
                         document.getElementById('receiver-progress-percent').textContent = percent + '%';
                         document.getElementById('receiver-progress-bar').style.width = percent + '%';
+
                         if (incomingFile.receivedSize >= incomingFile.size) {
                             const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
-                            document.getElementById('incoming-file-name').textContent = incomingFile.name;
+                            document.getElementById('incoming-file-name').textContent = incomingFile.name + " (" + Math.round(incomingFile.size / 1024 / 1024 * 10) / 10 + " MB)";
                             const dlBtn = document.getElementById('download-btn');
                             dlBtn.href = blobUrl;
                             dlBtn.download = incomingFile.name;
                             document.getElementById('receiver-status-text').classList.add('hidden');
                             document.getElementById('download-ready').classList.remove('hidden');
+                            document.getElementById('receiver-progress-container').classList.add('hidden');
                         }
                     }
                 });
+
                 conn.on('close', () => {
                     if (!isConnected) setTimeout(connectWithRetry, 3000);
                 });
