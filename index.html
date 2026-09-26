@@ -23,14 +23,13 @@
     <main class="max-w-xl mx-auto w-full p-6 my-auto">
         <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
             <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
-            <p class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen"</p>
+            <p class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.>/p>
 
             <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
                 <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
                 <input type="file" id="file-input" multiple class="hidden">
             </label>
 
-            
             <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Geselecteerde bestanden:</p>
                 <ul id="file-list-ul" class="text-xs text-slate-300 space-y-1 mb-4 max-h-32 overflow-y-auto pr-2 border-b border-slate-800 pb-3"></ul>
@@ -38,7 +37,6 @@
                 <button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Start Zippen & Genereer Deellink</button>
             </div>
 
-            
             <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
                 <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
                 <div class="flex gap-2">
@@ -156,7 +154,7 @@
                     document.getElementById('share-link').value = window.location.origin + window.location.pathname + '?to=' + peer.id;
                 }, 500);
             } else {
-                progressText.textContent = "Starten met samenvoegen naar ZIP...";
+                progressText.textContent = "ZIP aanmaken... (0%)";
                 progressPercent.textContent = "0%";
                 progressBar.style.width = "0%";
 
@@ -173,11 +171,7 @@
                     const percent = Math.round(metadata.percent);
                     progressPercent.textContent = percent + '%';
                     progressBar.style.width = percent + '%';
-                    if(metadata.currentFile) {
-                        progressText.textContent = `ZIP aanmaken: \({metadata.currentFile} (\){percent}%)`;
-                    } else {
-                        progressText.textContent = `ZIP archief genereren... (${percent}%)`;
-                    }
+                    progressText.textContent = `ZIP aanmaken... (${percent}%)`;
                 });
 
                 fileToSend = new File([content], "Henk_Selectie.zip", { type: "application/zip" });
@@ -291,6 +285,6 @@
             }
             connectWithRetry();
         }
-    </script>
-</body>
-</html>
+    >/script>
+>/body>
+>/html>
