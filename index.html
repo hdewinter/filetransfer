@@ -1,99 +1,99 @@
-[haakje-open]!DOCTYPE html[haakje-sluit]
-[haakje-open]html lang="nl"[haakje-sluit]
-[haakje-open]head[haakje-sluit]
-    [haakje-open]meta charset="UTF-8"[haakje-sluit]
-    [haakje-open]meta name="viewport" content="width=device-width, initial-scale=1.0"[haakje-sluit]
-    [haakje-open]title[haakje-sluit]Henk’s File Transfer Applicatie[haakje-open]/title[haakje-sluit]
-    [haakje-open]script src="https://cdn.tailwindcss.com"[haakje-sluit][haakje-open]/script[haakje-sluit]
-    [haakje-open]script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"[haakje-sluit][haakje-open]/script[haakje-sluit]
-    [haakje-open]script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"[haakje-sluit][haakje-open]/script[haakje-sluit]
-[haakje-open]/head[haakje-sluit]
-[haakje-open]body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative"[haakje-sluit]
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Henk’s File Transfer Applicatie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
-    [haakje-open]header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6"[haakje-sluit]
-        [haakje-open]div class="max-w-4xl mx-auto flex items-center justify-between"[haakje-sluit]
-            [haakje-open]h1 class="text-xl font-bold tracking-tight text-orange-500"[haakje-sluit]HENK'S [haakje-open]span class="text-slate-100 font-normal"[haakje-sluit]FILE TRANSFER[haakje-open]/span[haakje-sluit][haakje-open]/h1[haakje-sluit]
-            [haakje-open]div class="flex items-center gap-3"[haakje-sluit]
-                [haakje-open]span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20"[haakje-sluit]Initialiseren...[haakje-open]/span[haakje-sluit]
-                [haakje-open]button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer"[haakje-sluit]i[haakje-open]/button[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
-        [haakje-open]/div[haakje-sluit]
-    [haakje-open]/header[haakje-sluit]
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 class="text-xl font-bold tracking-tight text-orange-500">HENK'S <span class="text-slate-100 font-normal">FILE TRANSFER</span></h1>
+            <div class="flex items-center gap-3">
+                <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
+                <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700 transition cursor-pointer">i</button>
+            </div>
+        </div>
+    </header>
 
-    [haakje-open]main class="max-w-xl mx-auto w-full p-6 my-auto"[haakje-sluit]
-        [haakje-open]div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center"[haakje-sluit]
-            [haakje-open]h2 class="text-2xl font-bold mb-2"[haakje-sluit]Bestanden Verzenden[haakje-open]/h2[haakje-sluit]
-            [haakje-open]p class="text-slate-400 text-sm mb-6"[haakje-sluit]Selecteer je bestanden om te beginnen.[haakje-sluit]/p[haakje-sluit]
+    <main class="max-w-xl mx-auto w-full p-6 my-auto">
+        <div id="sender-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
+            <h2 class="text-2xl font-bold mb-2">Bestanden Verzenden</h2>
+            <p class="text-slate-400 text-sm mb-6">Selecteer je bestanden om te beginnen.>/p>
 
-            [haakje-open]label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block"[haakje-sluit]
-                [haakje-open]span class="text-sm font-medium text-slate-300"[haakje-sluit]Klik om te bladeren of sleep bestanden[haakje-open]/span[haakje-sluit]
-                [haakje-open]input type="file" id="file-input" multiple class="hidden"[haakje-sluit]
-            [haakje-open]/label[haakje-sluit]
+            <label id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-orange-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/50 block">
+                <span class="text-sm font-medium text-slate-300">Klik om te bladeren of sleep bestanden</span>
+                <input type="file" id="file-input" multiple class="hidden">
+            </label>
 
             
-            [haakje-open]div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800"[haakje-sluit]
-                [haakje-open]p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2"[haakje-sluit]Geselecteerde bestanden:[haakje-open]/p[haakje-sluit]
-                [haakje-open]ul id="file-list-ul" class="text-xs text-slate-300 space-y-1 mb-4 max-h-32 overflow-y-auto pr-2 border-b border-slate-800 pb-3"[haakje-sluit][haakje-open]/ul[haakje-sluit]
+            <div id="file-info" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Geselecteerde bestanden:</p>
+                <ul id="file-list-ul" class="text-xs text-slate-300 space-y-1 mb-4 max-h-32 overflow-y-auto pr-2 border-b border-slate-800 pb-3"></ul>
                 
-                [haakje-open]button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer"[haakje-sluit]Start Zippen & Genereer Deellink[haakje-open]/button[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
+                <button id="start-process-btn" onclick="startZippingAndSharing()" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Start Zippen & Genereer Deellink</button>
+            </div>
 
             
-            [haakje-open]div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800"[haakje-sluit]
-                [haakje-open]p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1"[haakje-sluit]Deel deze link met de ontvanger[haakje-open]/p[haakje-sluit]
-                [haakje-open]div class="flex gap-2"[haakje-sluit]
-                    [haakje-open]input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none"[haakje-sluit]
-                    [haakje-open]button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0"[haakje-sluit]Kopieer[haakje-open]/button[haakje-sluit]
-                [haakje-open]/div[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
+            <div id="share-section" class="hidden mt-6 text-left bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Deel deze link met de ontvanger</p>
+                <div class="flex gap-2">
+                    <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
+                    <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">Kopieer</button>
+                </div>
+            </div>
 
-            [haakje-open]div id="progress-container" class="hidden mt-6 text-left"[haakje-sluit]
-                [haakje-open]div class="flex justify-between text-sm mb-1"[haakje-sluit]
-                    [haakje-open]span id="progress-text" class="text-slate-400"[haakje-sluit]Voorbereiden...[haakje-open]/span[haakje-sluit]
-                    [haakje-open]span id="progress-percent" class="font-medium text-orange-400"[haakje-sluit]0%[haakje-open]/span[haakje-sluit]
-                [haakje-open]/div[haakje-sluit]
-                [haakje-open]div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800"[haakje-sluit]
-                    [haakje-open]div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"[haakje-sluit][haakje-open]/div[haakje-sluit]
-                [haakje-open]/div[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
-        [haakje-open]/div[haakje-sluit]
+            <div id="progress-container" class="hidden mt-6 text-left">
+                <div class="flex justify-between text-sm mb-1">
+                    <span id="progress-text" class="text-slate-400">Voorbereiden...</span>
+                    <span id="progress-percent" class="font-medium text-orange-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                    <div id="progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+        </div>
 
-        [haakje-open]div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center"[haakje-sluit]
-            [haakje-open]h2 class="text-2xl font-bold mb-2"[haakje-sluit]Bestanden Ontvangen[haakje-open]/h2[haakje-sluit]
-            [haakje-open]p id="receiver-status-text" class="text-slate-400 text-sm mb-6"[haakje-sluit]Verbinding maken met de verzender...[haakje-open]/p[haakje-sluit]
+        <div id="receiver-section" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl text-center">
+            <h2 class="text-2xl font-bold mb-2">Bestanden Ontvangen</h2>
+            <p id="receiver-status-text" class="text-slate-400 text-sm mb-6">Verbinding maken met de verzender...</p>
 
-            [haakje-open]div id="download-ready" class="hidden"[haakje-sluit]
-                [haakje-open]p id="incoming-file-name" class="font-medium text-slate-200 mb-4"[haakje-sluit][haakje-open]/p[haakje-sluit]
-                [haakje-open]a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer"[haakje-sluit]Bestand(en) Downloaden[haakje-open]/a[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
+            <div id="download-ready" class="hidden">
+                <p id="incoming-file-name" class="font-medium text-slate-200 mb-4"></p>
+                <a id="download-btn" class="inline-block bg-orange-600 hover:bg-orange-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-orange-600/20 cursor-pointer">Bestand(en) Downloaden</a>
+            </div>
 
-            [haakje-open]div id="receiver-progress-container" class="hidden mt-6 text-left"[haakje-sluit]
-                [haakje-open]div class="flex justify-between text-sm mb-1"[haakje-sluit]
-                    [haakje-open]span id="receiver-progress-text" class="text-slate-400"[haakje-sluit]Ontvangen...[haakje-open]/span[haakje-sluit]
-                    [haakje-open]span id="receiver-progress-percent" class="font-medium text-orange-400"[haakje-sluit]0%[haakje-open]/span[haakje-sluit]
-                [haakje-open]/div[haakje-sluit]
-                [haakje-open]div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800"[haakje-sluit]
-                    [haakje-open]div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"[haakje-sluit][haakje-open]/div[haakje-sluit]
-                [haakje-open]/div[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
-        [haakje-open]/div[haakje-sluit]
-    [haakje-open]/main[haakje-sluit]
+            <div id="receiver-progress-container" class="hidden mt-6 text-left">
+                <div class="flex justify-between text-sm mb-1">
+                    <span id="receiver-progress-text" class="text-slate-400">Ontvangen...</span>
+                    <span id="receiver-progress-percent" class="font-medium text-orange-400">0%</span>
+                </div>
+                <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800">
+                    <div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    [haakje-open]div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"[haakje-sluit]
-        [haakje-open]div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative"[haakje-sluit]
-            [haakje-open]div class="flex justify-between items-center mb-4"[haakje-sluit]
-                [haakje-open]h3 class="text-lg font-bold text-orange-500"[haakje-sluit]Hoe werkt Henk's File Transfer?[haakje-open]/h3[haakje-sluit]
-                [haakje-open]button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl"[haakje-sluit]×[haakje-open]/button[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
-            [haakje-open]div class="space-y-3 text-sm text-slate-300"[haakje-sluit]
-                [haakje-open]p[haakje-sluit][haakje-open]strong[haakje-sluit]1. Overzicht:[haakje-open]/strong[haakje-sluit] Controleer je geselecteerde bestanden.[haakje-open]/p[haakje-sluit]
-                [haakje-open]p[haakje-sluit][haakje-open]strong[haakje-sluit]2. Start:[haakje-open]/strong[haakje-sluit] Pak automatisch in als ZIP en genereer deellink.[haakje-open]/p[haakje-sluit]
-            [haakje-open]/div[haakje-sluit]
-            [haakje-open]button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer"[haakje-sluit]Begrepen[haakje-open]/button[haakje-sluit]
-        [haakje-open]/div[haakje-sluit]
-    [haakje-open]/div[haakje-sluit]
+    <div id="info-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-orange-500">Hoe werkt Henk's File Transfer?</h3>
+                <button onclick="toggleInfoModal()" class="text-slate-400 hover:text-white font-bold text-xl">×</button>
+            </div>
+            <div class="space-y-3 text-sm text-slate-300">
+                <p><strong>1. Overzicht:</strong> Controleer je geselecteerde bestanden.</p>
+                <p><strong>2. Start:</strong> Pak automatisch in als ZIP en genereer deellink.</p>
+            </div>
+            <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
+        </div>
+    </div>
 
-    [haakje-open]script[haakje-sluit]
+    <script>
         let peer;
         let selectedFiles = [];
         let fileToSend = null;
@@ -291,6 +291,6 @@
             }
             connectWithRetry();
         }
-    [haakje-open]/script[haakje-sluit]
+    </script>
 </body>
 </html>
