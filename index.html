@@ -17,7 +17,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.2.01.04</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.2.01.05</span>
                 </div>
             </div>
         </div>
@@ -131,9 +131,9 @@
                 <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden border border-slate-800 mb-2">
                     <div id="receiver-progress-bar" class="bg-orange-500 h-2.5 rounded-full w-0 transition-all duration-150"></div>
                 </div>
-                <div class="flex justify-between text-xs text-slate-400 mb-4 font-mono">
-                    <span id="recv-stats-speed">Snelheid: -- MB/s</span>
-                    <span id="recv-stats-remaining">Resterend: -- MB</span>
+                <div class="flex flex-col text-xs text-slate-400 mb-4 font-mono space-y-1">
+                    <div><span id="recv-stats-speed">Snelheid: -- MB/s</span></div>
+                    <div><span id="recv-stats-remaining">Resterend: -- MB</span></div>
                 </div>
                 <div class="flex gap-2">
                     <button id="pause-resume-btn" onclick="togglePauseReceiver()" class="w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Pauzeren</button>
@@ -166,8 +166,8 @@
                     <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar een andere browser gestuurd zonder dat ze via een server worden opgeslagen.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.2.01.04</strong></h4>
-                    <p class="text-slate-400">Na ontvangst van bestanden kun je nu kiezen tussen "Bestand downloaden" (direct downloaden) of "Bestand locatie openen" (openen in bestandsbrowser/verkenner).</p>
+                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.2.01.05</strong></h4>
+                    <p class="text-slate-400">Download snelheid aanzienlijk verhoogd. Download statistieken zijn nu op twee rijen geplaatst voor beter leesbare interface.</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -454,13 +454,6 @@
 
             function readNextChunk() {
                 if (!activeConnection || !activeConnection.open) return;
-
-                const bufferedAmount = activeConnection.dataChannel?.bufferedAmount ?? 0;
-                if (bufferedAmount > chunkSize * 8) {
-                    setTimeout(readNextChunk, 50);
-                    return;
-                }
-
                 reader.readAsArrayBuffer(fileToSend.slice(offset, offset + chunkSize));
             }
             readNextChunk();
