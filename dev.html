@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- QR Code Bibliotheek toegevoegd -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans relative">
 
@@ -17,7 +19,7 @@
                 <span id="connection-status" class="px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Initialiseren...</span>
                 <div class="flex items-center gap-2">
                     <button onclick="toggleInfoModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-sm border border-slate-700">i</button>
-                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.3.00.00</span>
+                    <span class="text-[10px] text-slate-700 font-mono tracking-tighter select-none">v1.2.01.20</span>
                 </div>
             </div>
         </div>
@@ -77,6 +79,13 @@
                     <input type="text" id="share-link" readonly class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 w-full focus:outline-none">
                     <button onclick="copyLink()" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0 cursor-pointer">Kopieer</button>
                 </div>
+                
+                <!-- QR-code sectie -->
+                <div class="flex flex-col items-center justify-center p-4 bg-slate-900 rounded-xl border border-slate-800 my-4 gap-2">
+                    <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Of scan de QR-code:</span>
+                    <div id="qrcode" class="p-2 bg-white rounded-lg inline-block"></div>
+                </div>
+
                 <button onclick="confirmCancel()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer">Annuleren / Opnieuw</button>
             </div>
 
@@ -146,7 +155,7 @@
     <div id="cancel-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center shadow-2xl">
             <h3 class="text-lg font-bold text-slate-100 mb-2"><strong>Weet je zeker?</strong></h3>
-            <p class="text-sm text-slate-400 mb-6">Wil je het huidige proces afbreken en terugkeren naar het begin?</p>
+            <p class="text-sm text-slate-400 mb-6">Wil je het huidige proces afbreken and terugkeren naar het begin?</p>
             <div class="flex gap-3">
                 <button onclick="executeCancel(false)" class="w-1/2 bg-slate-800 hover:bg-slate-700 text-slate-300 py-2.5 rounded-xl font-medium transition cursor-pointer">Nee</button>
                 <button onclick="executeCancel(true)" class="w-1/2 bg-orange-600 hover:bg-orange-500 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Ja</button>
@@ -166,8 +175,8 @@
                     <p class="text-slate-400">Henk's File Transfer is een veilige, directe peer-to-peer (P2P) applicatie om bestanden uit te wisselen. Bestanden worden rechtstreeks van jouw apparaat naar een andere browser gestuurd zonder dat ze via een server worden opgeslagen.</p>
                 </div>
                 <div>
-                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.3.00.00</strong></h4>
-                    <p class="text-slate-400">Backpressure model geïntroduceerd. Chunks worden nu één voor één aangevraagd door de ontvanger, wat buffer-overflows elimineert en snelheden optimaliseert. Pauzeren en hervatten werkt nu feilloos op byte-niveau.</p>
+                    <h4 class="font-bold text-slate-200 mb-1"><strong>Nieuw in v1.2.01.05</strong></h4>
+                    <p class="text-slate-400">Download snelheid aanzienlijk verhoogd. Download statistieken zijn nu op twee rijen geplaatst voor beter leesbare interface.</p>
                 </div>
             </div>
             <button onclick="toggleInfoModal()" class="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white py-2.5 rounded-xl font-medium transition cursor-pointer">Begrepen</button>
@@ -182,9 +191,10 @@
         let isPaused = false;
         let isStoppedManually = false;
         let originalExtension = '';
+        let qrCodeInstance = null;
         const statusEl = document.getElementById('connection-status');
         
-        // Verhoogd naar 128KB chunks voor betere doorvoersnelheid in het backpressure model
+        // 128KB Chunk grootte voorkomt buffer-overflows
         const chunkSize = 131072; 
 
         function toggleInfoModal() {
@@ -205,6 +215,10 @@
                 selectedFiles = [];
                 fileToSend = null;
                 originalExtension = '';
+                if (qrCodeInstance) {
+                    document.getElementById('qrcode').innerHTML = '';
+                    qrCodeInstance = null;
+                }
                 renderFileList();
                 isPaused = false;
                 isStoppedManually = false;
@@ -233,8 +247,18 @@
 
             peer.on('error', (err) => {
                 console.error('PeerJS Fout:', err);
-                statusEl.textContent = 'Fout: ' + err.type;
+                let errorMessage = 'Verbindingsfout';
+                if (err.type === 'peer-unavailable') errorMessage = 'Verzender niet online';
+                if (err.type === 'network') errorMessage = 'Netwerk onderbroken';
+                if (err.type === 'unavailable-id') errorMessage = 'ID reeds in gebruik';
+                
+                statusEl.textContent = errorMessage;
                 statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20';
+                
+                const recStatus = document.getElementById('receiver-status-text');
+                if (recStatus && !document.getElementById('receiver-section').classList.contains('hidden')) {
+                    recStatus.textContent = 'Fout bij verbinden: ' + errorMessage + '. Probeer de pagina te verversen.';
+                }
             });
         }
         initPeer();
@@ -293,7 +317,6 @@
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.textContent = '×';
-                removeBtn.title = 'Bestand verwijderen';
                 removeBtn.className = 'w-6 h-6 rounded-md bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white transition font-bold';
                 removeBtn.onclick = () => removeSelectedFile(index);
 
@@ -307,8 +330,6 @@
             const fileInfo = document.getElementById('file-info');
             if (selectedFiles.length === 0) {
                 fileInfo.classList.add('hidden');
-                document.getElementById('share-section').classList.add('hidden');
-                document.getElementById('progress-container').classList.add('hidden');
                 document.getElementById('drop-zone').classList.remove('hidden');
                 document.getElementById('sender-subtitle').classList.remove('hidden');
                 return;
@@ -319,14 +340,12 @@
                 const lastDot = selectedFiles[0].name.lastIndexOf('.');
                 originalExtension = lastDot !== -1 ? selectedFiles[0].name.substring(lastDot) : '';
                 customNameInput.value = selectedFiles[0].name;
-            } else if (!customNameInput.value || !customNameInput.value.endsWith('.zip')) {
+            } else {
                 originalExtension = '.zip';
                 customNameInput.value = 'Henk_Selectie.zip';
             }
 
             fileInfo.classList.remove('hidden');
-            document.getElementById('share-section').classList.add('hidden');
-            document.getElementById('progress-container').classList.add('hidden');
         }
 
         function removeSelectedFile(index) {
@@ -338,7 +357,6 @@
         fileInput.addEventListener('change', (e) => {
             const newlySelected = Array.from(e.target.files || []);
             if (newlySelected.length === 0) return;
-
             selectedFiles.push(...newlySelected);
             fileInput.value = '';
             renderFileList();
@@ -349,8 +367,6 @@
 
             document.getElementById('file-info').classList.add('hidden');
             document.getElementById('drop-zone').classList.add('hidden');
-            document.getElementById('start-process-btn').disabled = true;
-            document.getElementById('start-process-btn').classList.add('opacity-50', 'cursor-not-allowed');
             document.getElementById('sender-subtitle').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
 
@@ -366,20 +382,13 @@
                     customName += originalExtension;
                 }
                 fileToSend = new File([selectedFiles[0]], customName, { type: selectedFiles[0].type });
-                progressText.textContent = 'Bestand klaarmaken voor verzenden...';
+                progressText.textContent = 'Bestand gereed voor overdracht...';
                 progressPercent.textContent = '100%';
                 progressBar.style.width = '100%';
-                setTimeout(() => {
-                    document.getElementById('progress-container').classList.add('hidden');
-                    document.getElementById('sender-main-title').textContent = 'Bestand klaar om te verzenden';
-                    document.getElementById('share-section').classList.remove('hidden');
-                    document.getElementById('share-link').value = window.location.origin + window.location.pathname + '?to=' + peer.id;
-                }, 500);
+                showShareSection();
             } else {
                 if (!customName.endsWith('.zip')) customName += '.zip';
-                progressText.textContent = 'Bestanden klaarmaken voor verzenden... (0%)';
-                progressPercent.textContent = '0%';
-                progressBar.style.width = '0%';
+                progressText.textContent = 'Inpakken van bestanden... (0%)';
 
                 const zip = new JSZip();
                 for (let i = 0; i < selectedFiles.length; i++) {
@@ -389,32 +398,47 @@
                 const content = await zip.generateAsync({
                     type: 'blob',
                     compression: 'DEFLATE',
-                    compressionOptions: { level: 6 }
+                    compressionOptions: { level: 5 }
                 }, (metadata) => {
                     const percent = Math.round(metadata.percent);
                     progressPercent.textContent = percent + '%';
                     progressBar.style.width = percent + '%';
-                    progressText.textContent = `Bestanden klaarmaken voor verzenden... (${percent}%)`;
+                    progressText.textContent = `Inpakken van bestanden... (${percent}%)`;
                 });
 
                 fileToSend = new File([content], customName, { type: 'application/zip' });
-                progressText.textContent = 'Bestanden klaar voor verzenden!';
-
-                setTimeout(() => {
-                    document.getElementById('progress-container').classList.add('hidden');
-                    document.getElementById('sender-main-title').textContent = 'Bestand klaar om te verzenden';
-                    document.getElementById('share-section').classList.remove('hidden');
-                    document.getElementById('share-link').value = window.location.origin + window.location.pathname + '?to=' + peer.id;
-                }, 800);
+                showShareSection();
             }
+        }
+
+        function showShareSection() {
+            setTimeout(() => {
+                document.getElementById('progress-container').classList.add('hidden');
+                document.getElementById('sender-main-title').textContent = 'Klaar voor verzending';
+                const shareUrl = window.location.origin + window.location.pathname + '?to=' + peer.id;
+                document.getElementById('share-link').value = shareUrl;
+                document.getElementById('share-section').classList.remove('hidden');
+                
+                document.getElementById('qrcode').innerHTML = '';
+                qrCodeInstance = new QRCode(document.getElementById("qrcode"), {
+                    text: shareUrl,
+                    width: 140,
+                    height: 140,
+                    colorDark : "#020617",
+                    colorLight : "#ffffff"
+                });
+            }, 600);
         }
 
         function copyLink() {
             const copyText = document.getElementById('share-link');
             navigator.clipboard.writeText(copyText.value);
-            alert('Link gekopieerd!');
+            alert('Deellink gekopieerd naar klembord!');
         }
 
+        // ==========================================
+        // BACKPRESSURE MODEL (VERZENDER)
+        // ==========================================
         peer.on('connection', (conn) => {
             if (!fileToSend) {
                 try { conn.close(); } catch (e) {}
@@ -439,64 +463,47 @@
                     message: messageText
                 });
             });
-            
+
             conn.on('data', (packet) => {
                 if (packet.type === 'request-chunk') {
-                    sendSingleChunk(conn, packet.offset);
+                    handleChunkRequest(conn, packet.offset);
                 }
+            });
+
+            conn.on('close', () => {
+                statusEl.textContent = 'Klaar voor verbinding';
+                statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
             });
         });
 
-        // GECORRIGEERD: Snelheidsberekening-variabelen voor verzender naar buiten de functie gebracht voor stabiliteit
-        let senderLastSampleTime = Date.now();
-        let senderLastSampleBytes = 0;
-
-        // GECORRIGEERD: Stuurt nu strikt één chunk per verzoek (Backpressure)
-        function sendSingleChunk(conn, offset) {
-            if (!fileToSend || !activeConnection || !activeConnection.open) return;
+        function handleChunkRequest(conn, offset) {
+            if (!activeConnection || !activeConnection.open || !fileToSend) return;
 
             document.getElementById('share-section').classList.add('hidden');
             document.getElementById('progress-container').classList.remove('hidden');
             document.getElementById('transfer-stats').classList.remove('hidden');
 
-            const currentChunkSize = Math.min(chunkSize, fileToSend.size - offset);
-            const slice = fileToSend.slice(offset, offset + currentChunkSize);
             const reader = new FileReader();
+            const slice = fileToSend.slice(offset, offset + chunkSize);
 
             reader.onload = (e) => {
                 if (!activeConnection || !activeConnection.open) return;
                 
-                conn.send({ 
-                    type: 'file-chunk', 
-                    offset: offset, 
-                    data: e.target.result 
+                conn.send({
+                    type: 'file-chunk',
+                    offset: offset,
+                    data: e.target.result
                 });
 
                 const currentOffset = offset + e.target.result.byteLength;
                 const percent = Math.round((currentOffset / fileToSend.size) * 100);
-                const remainingBytes = fileToSend.size - currentOffset;
-
-                const now = Date.now();
-                const sampleDurationSec = (now - senderLastSampleTime) / 1000;
-                let speedText = '--';
                 
-                if (sampleDurationSec > 0.4) { // Update stats elke 400ms voor rustiger UI-beeld
-                    const bytesPerSec = (currentOffset - senderLastSampleBytes) / sampleDurationSec;
-                    senderLastSampleBytes = currentOffset;
-                    senderLastSampleTime = now;
-                    speedText = bytesPerSec > 1024 * 1024 ? (bytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s' : (bytesPerSec / 1024).toFixed(0) + ' KB/s';
-                    document.getElementById('stats-speed').textContent = `Snelheid: ${speedText}`;
-                }
-
-                let remainingText = remainingBytes > 1024 * 1024 ? (remainingBytes / (1024 * 1024)).toFixed(1) + ' MB' : Math.round(remainingBytes / 1024) + ' KB';
-
-                document.getElementById('progress-text').textContent = 'Bestand verzenden naar ontvanger...';
+                document.getElementById('progress-text').textContent = 'Bestand overdragen aan ontvanger...';
                 document.getElementById('progress-percent').textContent = percent + '%';
                 document.getElementById('progress-bar').style.width = percent + '%';
-                document.getElementById('stats-remaining').textContent = `Resterend: ${remainingText}`;
 
                 if (currentOffset >= fileToSend.size) {
-                    document.getElementById('progress-text').textContent = 'Verzending volledig voltooid!';
+                    document.getElementById('progress-text').textContent = 'Verzending succesvol voltooid!';
                     document.getElementById('transfer-stats').classList.add('hidden');
                 }
             };
@@ -504,6 +511,9 @@
             reader.readAsArrayBuffer(slice);
         }
 
+        // ==========================================
+        // BACKPRESSURE MODEL (ONTVANGER)
+        // ==========================================
         const urlParams = new URLSearchParams(window.location.search);
         const senderId = urlParams.get('to');
         if (senderId) {
@@ -520,6 +530,7 @@
             function connectWithRetry() {
                 if (isStoppedManually) return;
 
+                document.getElementById('receiver-status-text').textContent = 'Verbinding maken met de verzender...';
                 const conn = peer.connect(targetId);
                 receiverConnection = conn;
                 activeConnection = conn;
@@ -531,18 +542,15 @@
 
                     if (isPaused) {
                         document.getElementById('receiver-status-text').textContent = 'Download gepauzeerd.';
-                        document.getElementById('receiver-status-text').classList.remove('hidden');
+                    } else if (incomingFile.receivedSize > 0) {
+                        document.getElementById('receiver-status-text').textContent = 'Verbinding hersteld! Download hervatten...';
+                        setTimeout(() => {
+                            if (!isPaused && receiverConnection && receiverConnection.open) {
+                                requestNextChunkFromServer();
+                            }
+                        }, 1000);
                     } else {
-                        document.getElementById('receiver-status-text').textContent = incomingFile.receivedSize > 0 ? 'Klaar om verder te gaan.' : 'Klaar om te downloaden.';
-                        document.getElementById('receiver-status-text').classList.remove('hidden');
-                    }
-
-                    if (incomingFile.name) {
-                        document.getElementById('receiver-start-container').classList.remove('hidden');
-                        // GECORRIGEERD: Als de verbinding wegviel en we waren NIET gepauzeerd, vraag direct de volgende chunk aan
-                        if (!isPaused && incomingFile.receivedSize < incomingFile.size) {
-                            receiverConnection.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
-                        }
+                        document.getElementById('receiver-status-text').textContent = 'Bestandsinformatie opvragen...';
                     }
                 });
 
@@ -555,8 +563,7 @@
                         incomingFile.type = packet.fileType;
 
                         document.getElementById('recv-file-name').textContent = packet.name;
-                        let sizeStr = packet.size >= 1024 * 1024 ? (packet.size / (1024 * 1024)).toFixed(1) + ' MB' : Math.round(packet.size / 1024) + ' KB';
-                        document.getElementById('recv-file-size').textContent = sizeStr;
+                        document.getElementById('recv-file-size').textContent = formatFileSize(packet.size);
 
                         if (packet.message && packet.message.trim() !== '') {
                             document.getElementById('recv-message-text').textContent = packet.message;
@@ -565,12 +572,10 @@
 
                         document.getElementById('receiver-meta-info').classList.remove('hidden');
                         document.getElementById('receiver-start-container').classList.remove('hidden');
-                        document.getElementById('receiver-progress-container').classList.add('hidden');
-                        document.getElementById('receiver-status-text').classList.remove('hidden');
-                        document.getElementById('receiver-status-text').textContent = 'Klaar om te downloaden.';
-                    } else if (packet.type === 'file-chunk') {
-                        // GECORRIGEERD: Als we net op pauze hebben gedrukt maar er was nog een chunk onderweg, negeer of verwerk hem veilig, maar vraag GEEN nieuwe aan
-                        if (packet.offset !== incomingFile.receivedSize) return;
+                        document.getElementById('receiver-status-text').textContent = 'Bestand klaar voor download.';
+                    } 
+                    else if (packet.type === 'file-chunk') {
+                        if (isPaused || packet.offset !== incomingFile.receivedSize) return;
 
                         incomingFile.chunks.push(packet.data);
                         incomingFile.receivedSize += packet.data.byteLength;
@@ -579,53 +584,56 @@
                         const remainingBytes = incomingFile.size - incomingFile.receivedSize;
 
                         const now = Date.now();
-                        const sampleDurationSec = (now - lastRecvSampleTime) / 1000;
-                        
-                        if (sampleDurationSec > 0.4) {
-                            const bytesPerSec = (incomingFile.receivedSize - lastRecvBytes) / sampleDurationSec;
+                        const duration = (now - lastRecvSampleTime) / 1000;
+                        if (duration >= 0.8) {
+                            const bytesDelivered = incomingFile.receivedSize - lastRecvBytes;
+                            const speedBytesPerSec = bytesDelivered / duration;
+                            
+                            let speedText = speedBytesPerSec > 1024 * 1024 
+                                ? (speedBytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s' 
+                                : (speedBytesPerSec / 1024).toFixed(0) + ' KB/s';
+                                
+                            document.getElementById('recv-stats-speed').textContent = `Snelheid: ${speedText}`;
                             lastRecvBytes = incomingFile.receivedSize;
                             lastRecvSampleTime = now;
-                            let speedText = bytesPerSec > 1024 * 1024 ? (bytesPerSec / (1024 * 1024)).toFixed(1) + ' MB/s' : (bytesPerSec / 1024).toFixed(0) + ' KB/s';
-                            document.getElementById('recv-stats-speed').textContent = `Snelheid: ${speedText}`;
                         }
 
-                        let remainingText = remainingBytes > 1024 * 1024 ? (remainingBytes / (1024 * 1024)).toFixed(1) + ' MB' : Math.round(remainingBytes / 1024) + ' KB';
-
-                        document.getElementById('receiver-progress-text').textContent = 'Bestand ontvangen...';
                         document.getElementById('receiver-progress-percent').textContent = percent + '%';
                         document.getElementById('receiver-progress-bar').style.width = percent + '%';
-                        document.getElementById('recv-stats-remaining').textContent = `Resterend: ${remainingText}`;
+                        document.getElementById('recv-stats-remaining').textContent = `Resterend: ${formatFileSize(remainingBytes)}`;
 
                         if (incomingFile.receivedSize >= incomingFile.size) {
-                            if (window.currentBlobUrl) URL.revokeObjectURL(window.currentBlobUrl);
-                            const blobUrl = URL.createObjectURL(new Blob(incomingFile.chunks, { type: incomingFile.type }));
-                            window.currentBlobUrl = blobUrl;
-                            document.getElementById('download-ready').classList.remove('hidden');
-                            document.getElementById('receiver-progress-container').classList.add('hidden');
-                            document.getElementById('receiver-start-container').classList.add('hidden');
-                            document.getElementById('pause-resume-btn').disabled = true;
-                        } else if (!isPaused && receiverConnection && receiverConnection.open) {
-                            // GECORRIGEERD: Vraag pas de volgende chunk aan als de huidige succesvol verwerkt is (Echte backpressure)
-                            receiverConnection.send({ type: 'request-chunk', offset: incomingFile.receivedSize });
+                            finalizeDownload();
+                        } else {
+                            requestNextChunkFromServer();
                         }
                     }
                 });
 
                 conn.on('close', () => {
                     if (isStoppedManually) return;
-
+                    
                     statusEl.textContent = 'Verbinding verbroken';
                     statusEl.className = 'px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20';
 
                     if (incomingFile.receivedSize < incomingFile.size && incomingFile.size > 0) {
-                        document.getElementById('receiver-status-text').textContent = 'Verbinding verbroken... Automatisch herstellen...';
+                        document.getElementById('receiver-status-text').textContent = 'Verbinding verloren. Automatisch opnieuw proberen...';
                         document.getElementById('receiver-status-text').classList.remove('hidden');
-                        setTimeout(connectWithRetry, 2500); // Probeer automatisch opnieuw te verbinden
+                        setTimeout(connectWithRetry, 3000);
                     }
                 });
             }
 
             connectWithRetry();
+        }
+
+        function requestNextChunkFromServer() {
+            if (receiverConnection && receiverConnection.open && !isPaused && !isStoppedManually) {
+                receiverConnection.send({
+                    type: 'request-chunk',
+                    offset: incomingFile.receivedSize
+                });
+            }
         }
 
         function startReceiverDownload() {
@@ -635,75 +643,61 @@
             lastRecvBytes = incomingFile.receivedSize;
             lastRecvSampleTime = Date.now();
 
-            const startBtn = document.getElementById('start-download-btn');
-            startBtn.disabled = true;
-            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
             document.getElementById('receiver-start-container').classList.add('hidden');
             document.getElementById('receiver-progress-container').classList.remove('hidden');
             document.getElementById('receiver-status-text').classList.add('hidden');
 
-            const pauseBtn = document.getElementById('pause-resume-btn');
-            pauseBtn.disabled = false;
-            pauseBtn.textContent = 'Pauzeren';
-            pauseBtn.className = 'w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
-
-            // Start de backpressure kettingreactie
-            receiverConnection.send({
-                type: 'request-chunk',
-                offset: incomingFile.receivedSize
-            });
+            requestNextChunkFromServer();
         }
 
         function togglePauseReceiver() {
             const btn = document.getElementById('pause-resume-btn');
 
             if (isPaused) {
-                // GECORRIGEERD: Correct hervatten op byte-niveau
                 isPaused = false;
-                lastRecvBytes = incomingFile.receivedSize;
-                lastRecvSampleTime = Date.now();
-                
                 btn.textContent = 'Pauzeren';
                 btn.className = 'w-1/2 bg-amber-600 hover:bg-amber-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
-                document.getElementById('receiver-status-text').textContent = 'Download hervatten...';
                 document.getElementById('receiver-status-text').classList.add('hidden');
-
-                if (receiverConnection && receiverConnection.open && incomingFile.name && incomingFile.receivedSize < incomingFile.size) {
-                    receiverConnection.send({
-                        type: 'request-chunk',
-                        offset: incomingFile.receivedSize
-                    });
-                }
-                return;
+                
+                lastRecvBytes = incomingFile.receivedSize;
+                lastRecvSampleTime = Date.now();
+                requestNextChunkFromServer();
+            } else {
+                isPaused = true;
+                btn.textContent = 'Hervatten';
+                btn.className = 'w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
+                document.getElementById('receiver-status-text').textContent = 'Download gepauzeerd.';
+                document.getElementById('receiver-status-text').classList.remove('hidden');
             }
+        }
 
-            // GECORRIGEERD: Correct pauzeren door de request-loop te stoppen
-            isPaused = true;
-            btn.textContent = 'Hervatten';
-            btn.className = 'w-1/2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl text-sm font-medium transition cursor-pointer';
-            document.getElementById('receiver-status-text').textContent = 'Download gepauzeerd.';
-            document.getElementById('receiver-status-text').classList.remove('hidden');
+        function finalizeDownload() {
+            if (window.currentBlobUrl) URL.revokeObjectURL(window.currentBlobUrl);
+            
+            const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
+            window.currentBlobUrl = URL.createObjectURL(blob);
+            
+            document.getElementById('download-ready').classList.remove('hidden');
+            document.getElementById('receiver-progress-container').classList.add('hidden');
+            document.getElementById('receiver-start-container').classList.add('hidden');
         }
 
         function stopReceiverDownload() {
             isStoppedManually = true;
+            isPaused = false;
             if (window.currentBlobUrl) {
                 URL.revokeObjectURL(window.currentBlobUrl);
                 window.currentBlobUrl = null;
             }
-            isPaused = false;
             if (receiverConnection) {
                 try { receiverConnection.close(); } catch (e) {}
             }
             document.getElementById('receiver-progress-container').classList.add('hidden');
-            document.getElementById('receiver-status-text').textContent = 'Download gestopt door gebruiker.';
+            document.getElementById('receiver-status-text').textContent = 'Download stopgezet.';
             document.getElementById('receiver-status-text').classList.remove('hidden');
-            const pauseBtn = document.getElementById('pause-resume-btn');
-            pauseBtn.disabled = true;
-            pauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
+        // Downloadeer het samengestelde bestand
         function downloadFile() {
             if (!window.currentBlobUrl) return;
             const dlBtn = document.createElement('a');
@@ -716,31 +710,25 @@
 
         function openFileLocation() {
             if (!window.currentBlobUrl) return;
-
             const blob = new Blob(incomingFile.chunks, { type: incomingFile.type });
 
             if ('showSaveFilePicker' in window) {
                 (async () => {
                     try {
                         const handle = await window.showSaveFilePicker({
-                            suggestedName: incomingFile.name,
-                            types: [{
-                                description: incomingFile.type || 'File',
-                                accept: { [incomingFile.type || 'application/octet-stream']: [''] }
-                            }]
+                            suggestedName: incomingFile.name
                         });
                         const writable = await handle.createWritable();
                         await writable.write(blob);
                         await writable.close();
-                        alert('Bestand opgeslagen! Je kunt het nu vinden op je computer.');
+                        alert('Bestand succesvol opgeslagen op de gekozen locatie!');
                     } catch (e) {
-                        console.error('Fout bij opslaan:', e);
                         downloadFile();
                     }
                 })();
             } else {
                 downloadFile();
-                alert('Bestand is gedownload naar je Downloads map. Open de verkenner/Finder om het te zien.');
+                alert('Bestand opgeslagen in je standaard downloads map.');
             }
         }
     </script>
